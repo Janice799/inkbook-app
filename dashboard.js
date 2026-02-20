@@ -987,16 +987,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!result.success) return;
 
         const bookings = result.data;
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
         const completed = bookings.filter(b => b.status === 'completed');
-        const confirmed = bookings.filter(b => b.status === 'confirmed');
-        const totalRevenue = completed.reduce((sum, b) => sum + (parseFloat(b.deposit) || 0), 0);
-        const depositCollected = confirmed.reduce((sum, b) => sum + (parseFloat(b.deposit) || 0), 0);
+        const confirmed = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
+
+        // This month's completed
+        const monthCompleted = completed.filter(b => {
+            const d = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+            return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+
+        const totalRevenue = monthCompleted.reduce((sum, b) => sum + (parseFloat(b.totalPrice) || 0), 0);
+        const depositCollected = confirmed.reduce((sum, b) => sum + (parseFloat(b.depositAmount) || parseFloat(b.deposit?.amount) || 0), 0);
 
         const el = (id) => document.getElementById(id);
         if (el('earningsTotal')) el('earningsTotal').textContent = `$${totalRevenue.toLocaleString()}`;
-        if (el('earningsBookings')) el('earningsBookings').textContent = `From ${completed.length} completed bookings`;
+        if (el('earningsBookings')) el('earningsBookings').textContent = `From ${monthCompleted.length} completed bookings`;
         if (el('earningsDeposits')) el('earningsDeposits').textContent = `$${depositCollected.toLocaleString()}`;
-        if (el('earningsPending')) el('earningsPending').textContent = `${confirmed.length} pending bookings`;
+        if (el('earningsPending')) el('earningsPending').textContent = `${confirmed.length} upcoming bookings`;
 
         // Transaction list
         const txList = el('earningsTransactionList');
@@ -1012,18 +1023,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }).slice(0, 20);
 
             txList.innerHTML = sorted.map(b => {
-                const icon = b.status === 'cancelled' ? '⚠' : '↓';
-                const iconClass = b.status === 'cancelled' ? 'forfeit-icon' : 'deposit-icon';
-                const amountClass = b.status === 'cancelled' ? 'positive' : 'positive';
-                const label = b.status === 'cancelled' ? 'Cancelled' : b.status === 'completed' ? 'Completed' : 'Deposit';
+                const price = b.totalPrice || 0;
+                const deposit = b.depositAmount || b.deposit?.amount || 0;
+                const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+                const dateStr = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                let icon, iconClass, label, amount;
+                if (b.status === 'completed') {
+                    icon = '✅'; iconClass = 'deposit-icon'; label = 'Completed'; amount = `+$${price}`;
+                } else if (b.status === 'cancelled') {
+                    icon = '❌'; iconClass = 'forfeit-icon'; label = 'Cancelled'; amount = '$0';
+                } else if (b.status === 'confirmed') {
+                    icon = '📅'; iconClass = 'deposit-icon'; label = 'Confirmed'; amount = deposit > 0 ? `Deposit $${deposit}` : `$${price}`;
+                } else {
+                    icon = '⏳'; iconClass = 'deposit-icon'; label = 'Pending'; amount = `$${price}`;
+                }
                 return `
                     <div class="transaction">
                         <div class="tx-icon ${iconClass}">${icon}</div>
                         <div class="tx-info">
                             <strong>${label} — ${b.clientName || 'Client'}</strong>
-                            <span>${b.designName || 'Booking'} · ${b.date || ''}</span>
+                            <span>${b.designName || 'Booking'} · ${dateStr} ${b.timeSlot || ''}</span>
                         </div>
-                        <span class="tx-amount ${amountClass}">+$${b.deposit || 0}</span>
+                        <span class="tx-amount ${b.status === 'completed' ? 'positive' : ''}">${amount}</span>
                     </div>
                 `;
             }).join('');
