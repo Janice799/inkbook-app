@@ -1,49 +1,25 @@
-// ============================================================
-// InkBook — Firestore Security Rules
-// Deploy: firebase deploy --only firestore:rules
-// ============================================================
-//
-// Copy this to Firebase Console > Firestore > Rules
-//
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ---- Artists Collection ----
-    // Public: anyone can read (for booking pages)
-    // Write: only the artist themselves
+    // Artists — authenticated user can read/write own profile
     match /artists/{artistId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == artistId;
-      allow update: if request.auth != null && request.auth.uid == artistId;
-      allow delete: if false; // Never delete artist accounts from client
+      allow write: if request.auth != null && request.auth.uid == artistId;
     }
 
-    // ---- Flash Designs Collection ----
-    // Public: anyone can read available designs
-    // Write: only the design owner
+    // Bookings — artist can read/manage, anyone can create
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read: if request.auth != null && resource.data.artistId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.artistId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Flash Designs — public read, artist write
     match /flash_designs/{designId} {
       allow read: if true;
-      allow create: if request.auth != null
-                    && request.resource.data.artistId == request.auth.uid;
-      allow update: if request.auth != null
-                    && resource.data.artistId == request.auth.uid;
-      allow delete: if request.auth != null
-                    && resource.data.artistId == request.auth.uid;
-    }
-
-    // ---- Bookings Collection ----
-    // Read: artist owner OR matching client email
-    // Create: anyone (clients creating bookings)
-    // Update: only the artist owner
-    match /bookings/{bookingId} {
-      allow read: if request.auth != null
-                  && resource.data.artistId == request.auth.uid;
-      allow create: if true; // Clients create bookings without auth
-      allow update: if request.auth != null
-                    && resource.data.artistId == request.auth.uid;
-      allow delete: if false;
+      allow write: if request.auth != null && resource.data.artistId == request.auth.uid;
+      allow create: if request.auth != null;
     }
   }
 }

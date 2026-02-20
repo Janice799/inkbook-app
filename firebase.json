@@ -12,5 +12,20 @@
                 "destination": "/index.html"
             }
         ]
+    },
+    "firestore": {
+        "rules": "firestore.rules"
+    },
+    "auth": {
+        "providers": {
+            "emailPassword": true,
+            "googleSignIn": {
+                "oAuthBrandDisplayName": "InkBook",
+                "supportEmail": "seanae01@gmail.com"
+            }
+        }
+    },
+    "storage": {
+        "rules": "storage.rules"
     }
 }
