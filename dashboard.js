@@ -223,16 +223,17 @@ async function loadGallery() {
     const result = await getArtistFlashDesigns(currentUser.uid);
     const grid = document.querySelector('.gallery-grid');
     if (!grid) return;
-
     grid.innerHTML = '';
 
     if (result.success && result.data.length > 0) {
         result.data.forEach(design => {
             const card = document.createElement('div');
             card.className = 'gallery-card';
+            const isHidden = design.available === false;
             card.innerHTML = `
-                <div class="gallery-img" style="${design.imageUrl ? `background-image: url(${design.imageUrl}); background-size: cover;` : 'background: linear-gradient(135deg, #2d1b69, #1a1a2e);'}">
+                <div class="gallery-img" style="position:relative;${design.imageUrl ? `background-image: url(${design.imageUrl}); background-size: cover; background-position: center; cursor:pointer;` : 'background: linear-gradient(135deg, #2d1b69, #1a1a2e); cursor:pointer;'}${isHidden ? ' opacity:0.5; filter:grayscale(0.5);' : ''}">
                     ${!design.imageUrl ? `<span>${design.emoji || '🎨'}</span>` : ''}
+                    ${isHidden ? '<span style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:4px;font-size:0.7rem;color:#ff9800;">Hidden</span>' : ''}
                 </div>
                 <div class="gallery-info">
                     <strong>${design.name}</strong>
@@ -240,44 +241,107 @@ async function loadGallery() {
                 </div>
                 <div class="gallery-stats">${design.bookingsCount || 0} bookings</div>
                 <div class="gallery-actions" style="padding: 0 12px 12px; display: flex; gap: 8px;">
-                    <button class="table-action" onclick="window.toggleDesign('${design.id}', ${!design.available})">${design.available ? 'Hide' : 'Show'}</button>
-                    <button class="table-action" style="color: #ff4d4d;" onclick="window.deleteDesign('${design.id}')">Delete</button>
+                    <button class="table-action edit-btn">✏️ Edit</button>
+                    <button class="table-action toggle-btn">${isHidden ? '👁️ Publish' : '🙈 Hide'}</button>
+                    <button class="table-action del-btn" style="color: #ff4d4d;">🗑️</button>
                 </div>`;
+            // Click image → open full
+            card.querySelector('.gallery-img').addEventListener('click', () => {
+                if (design.imageUrl) window.open(design.imageUrl, '_blank');
+            });
+            // Edit
+            card.querySelector('.edit-btn').addEventListener('click', () => showEditDesignModal(design));
+            // Toggle
+            card.querySelector('.toggle-btn').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                btn.textContent = '...'; btn.disabled = true;
+                await toggleDesignAvailability(design.id, !design.available !== false ? false : true);
+                loadGallery();
+            });
+            // Delete
+            card.querySelector('.del-btn').addEventListener('click', async () => {
+                if (confirm('Delete this design permanently?')) {
+                    await deleteFlashDesign(design.id);
+                    loadGallery();
+                }
+            });
             grid.appendChild(card);
         });
     }
 
-    // Add "Add New" card
+    // Add New card
     const addCard = document.createElement('div');
     addCard.className = 'gallery-card add-new';
     addCard.innerHTML = `
         <div class="gallery-img" style="background: var(--bg-secondary); cursor: pointer;"><span>➕</span></div>
-        <div class="gallery-info">
-            <strong>Add New Design</strong>
-            <span>Upload flash art</span>
-        </div>`;
+        <div class="gallery-info"><strong>Add New Design</strong><span>Upload flash art</span></div>`;
     addCard.addEventListener('click', showUploadModal);
     grid.appendChild(addCard);
 }
 
-// Gallery actions
-window.toggleDesign = async (designId, newState) => {
-    await toggleDesignAvailability(designId, newState);
-    loadGallery();
-};
-
-window.deleteDesign = async (designId) => {
-    if (confirm('Delete this design permanently?')) {
-        await deleteFlashDesign(designId);
-        loadGallery();
-    }
-};
+// ---- Edit Design Modal ----
+function showEditDesignModal(design) {
+    document.getElementById('editDesignModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'editDesignModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+    modal.innerHTML = `
+        <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;">
+            <h3 style="margin-bottom:16px;color:var(--text-primary);">✏️ Edit Design</h3>
+            ${design.imageUrl ? `<img src="${design.imageUrl}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:16px;" />` : ''}
+            <form id="editDesignForm" style="display:flex;flex-direction:column;gap:12px;">
+                <div>
+                    <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Design Name</label>
+                    <input type="text" id="editName" value="${design.name || ''}" required style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Price ($)</label>
+                        <input type="number" id="editPrice" value="${design.price || 0}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Size</label>
+                        <input type="text" id="editSize" value="${design.size || ''}" placeholder="e.g. 4-5in" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Duration</label>
+                    <input type="text" id="editDuration" value="${design.duration || ''}" placeholder="e.g. 2hrs" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                </div>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
+                    <button type="button" id="cancelEditDesign" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
+                </div>
+            </form>
+        </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('cancelEditDesign').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById('editDesignForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.textContent = 'Saving...'; btn.disabled = true;
+        try {
+            await updateDoc(doc(db, 'flash_designs', design.id), {
+                name: document.getElementById('editName').value,
+                price: parseFloat(document.getElementById('editPrice').value) || 0,
+                size: document.getElementById('editSize').value,
+                duration: document.getElementById('editDuration').value,
+                updatedAt: serverTimestamp()
+            });
+            btn.textContent = '✅ Saved!';
+            setTimeout(() => { modal.remove(); loadGallery(); }, 800);
+        } catch (err) {
+            console.error('Edit error:', err);
+            btn.textContent = '❌ Error';
+            setTimeout(() => { btn.textContent = 'Save Changes'; btn.disabled = false; }, 2000);
+        }
+    });
+}
 
 // ---- Upload Modal ----
 function showUploadModal() {
-    // Remove existing modal
     document.getElementById('uploadModal')?.remove();
-
     const modal = document.createElement('div');
     modal.id = 'uploadModal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
@@ -291,8 +355,7 @@ function showUploadModal() {
                 <input type="text" id="designDuration" placeholder="Duration (e.g. 2hrs)" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);" />
                 <input type="file" id="designImage" accept="image/*" style="display:none;" />
                 <label for="designImage" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:0.9rem;">
-                    <span>📎</span>
-                    <span id="fileLabel">Choose Image File</span>
+                    <span>📎</span><span id="fileLabel">Choose Image File</span>
                 </label>
                 <div style="display:flex;gap:10px;margin-top:8px;">
                     <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Upload</button>
@@ -301,23 +364,17 @@ function showUploadModal() {
             </form>
         </div>`;
     document.body.appendChild(modal);
-
     document.getElementById('cancelUpload').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-
-    // Show selected filename
     document.getElementById('designImage').addEventListener('change', (e) => {
         const label = document.getElementById('fileLabel');
         label.textContent = e.target.files[0] ? e.target.files[0].name : 'Choose Image File';
         if (e.target.files[0]) label.style.color = 'var(--accent-bright)';
     });
-
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button[type="submit"]');
-        btn.textContent = 'Uploading...';
-        btn.disabled = true;
-
+        btn.textContent = 'Uploading...'; btn.disabled = true;
         const imageFile = document.getElementById('designImage').files[0];
         const designData = {
             name: document.getElementById('designName').value,
@@ -326,16 +383,9 @@ function showUploadModal() {
             duration: document.getElementById('designDuration').value,
             available: true
         };
-
         const result = await uploadFlashDesign(currentUser.uid, designData, imageFile);
-        if (result.success) {
-            modal.remove();
-            loadGallery();
-        } else {
-            btn.textContent = 'Upload';
-            btn.disabled = false;
-            alert('Upload failed: ' + result.error);
-        }
+        if (result.success) { modal.remove(); loadGallery(); }
+        else { btn.textContent = 'Upload'; btn.disabled = false; alert('Upload failed: ' + result.error); }
     });
 }
 
@@ -438,24 +488,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
                         <div>
-                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date * (MM/DD/YYYY)</label>
-                            <input type="text" id="mbDate" required placeholder="02/21/2026" value="${(tomorrow.getMonth() + 1).toString().padStart(2, '0')}/${tomorrow.getDate().toString().padStart(2, '0')}/${tomorrow.getFullYear()}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date *</label>
+                            <input type="date" id="mbDate" required value="${tomorrow.getFullYear()}-${(tomorrow.getMonth() + 1).toString().padStart(2, '0')}-${tomorrow.getDate().toString().padStart(2, '0')}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time *</label>
                             <select id="mbTime" required style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
                                 <option value="09:00">9:00 AM</option>
+                                <option value="09:30">9:30 AM</option>
                                 <option value="10:00">10:00 AM</option>
+                                <option value="10:30">10:30 AM</option>
                                 <option value="11:00">11:00 AM</option>
+                                <option value="11:30">11:30 AM</option>
                                 <option value="12:00">12:00 PM</option>
+                                <option value="12:30">12:30 PM</option>
                                 <option value="13:00">1:00 PM</option>
+                                <option value="13:30">1:30 PM</option>
                                 <option value="14:00" selected>2:00 PM</option>
+                                <option value="14:30">2:30 PM</option>
                                 <option value="15:00">3:00 PM</option>
+                                <option value="15:30">3:30 PM</option>
                                 <option value="16:00">4:00 PM</option>
+                                <option value="16:30">4:30 PM</option>
                                 <option value="17:00">5:00 PM</option>
+                                <option value="17:30">5:30 PM</option>
                                 <option value="18:00">6:00 PM</option>
+                                <option value="18:30">6:30 PM</option>
                                 <option value="19:00">7:00 PM</option>
+                                <option value="19:30">7:30 PM</option>
                                 <option value="20:00">8:00 PM</option>
+                                <option value="20:30">8:30 PM</option>
+                                <option value="21:00">9:00 PM</option>
                             </select>
                         </div>
                         <div>
@@ -520,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 designId: null,
                 designName: document.getElementById('mbDesignName').value,
                 designType: 'custom',
-                date: (() => { const p = document.getElementById('mbDate').value.split('/'); return `${p[2]}-${p[0]}-${p[1]}`; })(),
+                date: document.getElementById('mbDate').value,
                 timeSlot: document.getElementById('mbTime').value,
                 estimatedDuration: parseInt(document.getElementById('mbDuration').value) * 60,
                 totalPrice: price,
