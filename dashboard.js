@@ -4,6 +4,7 @@
 import { onAuthChange, logoutArtist, getArtistProfile } from './src/auth.js';
 import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus, createBooking } from './src/bookings.js';
 import { getArtistFlashDesigns, uploadFlashDesign, toggleDesignAvailability, deleteFlashDesign } from './src/gallery.js';
+import { getTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember } from './src/team.js';
 import { db, doc, setDoc, updateDoc, serverTimestamp } from './src/firebase.js';
 
 // ---- Global State ----
@@ -150,7 +151,7 @@ async function loadNotifications() {
             list.innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No notifications</p>';
         } else {
             list.innerHTML = unique.map(n => `
-                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:4px;background:var(--bg-primary);transition:background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--bg-primary)'">
+                <div class="notif-item" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:4px;background:var(--bg-primary);transition:background 0.2s;cursor:pointer;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--bg-primary)'">
                     <span style="font-size:1.2rem;flex-shrink:0;margin-top:2px;">${n.icon}</span>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;color:var(--text-primary);font-size:0.85rem;">${n.title}</div>
@@ -159,6 +160,18 @@ async function loadNotifications() {
                     <span style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;">${n.time}</span>
                 </div>
             `).join('');
+            // Click notification → go to Bookings tab
+            list.querySelectorAll('.notif-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.getElementById('notifDropdown').style.display = 'none';
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    const bookingsNav = document.querySelector('[data-tab="bookings"]');
+                    if (bookingsNav) bookingsNav.classList.add('active');
+                    document.getElementById('tab-bookings')?.classList.add('active');
+                    document.getElementById('pageTitle').textContent = 'Bookings';
+                });
+            });
         }
     }
 }
@@ -1115,6 +1128,145 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window._loadEarnings = loadEarnings;
     loadEarnings();
+
+    // ---- TEAM MEMBERS ----
+    async function loadTeamGrid() {
+        const grid = document.getElementById('teamGrid');
+        if (!grid) return;
+        const result = await getTeamMembers(currentUser.uid);
+        const members = result.success ? result.data : [];
+
+        grid.innerHTML = '';
+
+        // Render member cards
+        members.forEach(m => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;transition:border-color 0.2s;';
+            card.onmouseover = () => card.style.borderColor = 'var(--accent)';
+            card.onmouseout = () => card.style.borderColor = 'var(--border)';
+            const roleColor = m.role === 'artist' ? 'var(--accent-bright)' : '#4ecdc4';
+            const roleLabel = m.role === 'artist' ? '🎨 Artist' : '👤 Staff';
+            card.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,${roleColor},var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;">${(m.name || '?').charAt(0).toUpperCase()}</div>
+                    <div>
+                        <strong style="color:var(--text-primary);font-size:1rem;">${m.name || 'Unnamed'}</strong>
+                        <div style="font-size:0.75rem;color:${roleColor};margin-top:2px;">${roleLabel}</div>
+                    </div>
+                </div>
+                ${m.specialties ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">✨ ${m.specialties}</div>` : ''}
+                ${m.workDays ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">📅 ${m.workDays}</div>` : ''}
+                ${m.startTime ? `<div style="font-size:0.75rem;color:var(--text-muted);">🕐 ${m.startTime} — ${m.endTime || '18:00'}</div>` : ''}
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                    <button class="edit-member-btn" style="flex:1;padding:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:0.8rem;">✏️ Edit</button>
+                    <button class="del-member-btn" style="padding:8px 12px;background:none;border:1px solid rgba(255,77,77,0.3);border-radius:6px;color:#ff4d4d;cursor:pointer;font-size:0.8rem;">🗑️</button>
+                </div>`;
+            card.querySelector('.edit-member-btn').addEventListener('click', () => showTeamModal(m));
+            card.querySelector('.del-member-btn').addEventListener('click', async () => {
+                if (confirm(`Delete ${m.name}?`)) {
+                    await deleteTeamMember(m.id);
+                    loadTeamGrid();
+                }
+            });
+            grid.appendChild(card);
+        });
+
+        if (members.length === 0) {
+            grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;grid-column:1/-1;">No team members yet. Click "+ Add Member" to add your first artist or staff.</p>';
+        }
+    }
+
+    function showTeamModal(existing) {
+        document.getElementById('teamModal')?.remove();
+        const isEdit = !!existing;
+        const m = existing || {};
+        const modal = document.createElement('div');
+        modal.id = 'teamModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.innerHTML = `
+            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;">
+                <h3 style="margin-bottom:20px;color:var(--text-primary);">${isEdit ? '✏️ Edit Member' : '➕ Add Team Member'}</h3>
+                <form id="teamMemberForm" style="display:flex;flex-direction:column;gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Name *</label>
+                        <input type="text" id="tmName" value="${m.name || ''}" required style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Role *</label>
+                            <select id="tmRole" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                <option value="artist" ${m.role === 'artist' || !m.role ? 'selected' : ''}>🎨 Artist</option>
+                                <option value="staff" ${m.role === 'staff' ? 'selected' : ''}>👤 Staff</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Specialties</label>
+                            <input type="text" id="tmSpecialties" value="${m.specialties || ''}" placeholder="e.g. Realism, Color" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Email</label>
+                        <input type="email" id="tmEmail" value="${m.email || ''}" placeholder="team@example.com" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Phone</label>
+                        <input type="text" id="tmPhone" value="${m.phone || ''}" placeholder="(555) 123-4567" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Working Days</label>
+                        <input type="text" id="tmDays" value="${m.workDays || ''}" placeholder="Mon-Fri" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Start Time</label>
+                            <input type="time" id="tmStart" value="${m.startTime || '10:00'}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">End Time</label>
+                            <input type="time" id="tmEnd" value="${m.endTime || '18:00'}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">${isEdit ? 'Save Changes' : 'Add Member'}</button>
+                        <button type="button" id="cancelTeam" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
+                    </div>
+                </form>
+            </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('cancelTeam').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        document.getElementById('teamMemberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.textContent = 'Saving...'; btn.disabled = true;
+            const data = {
+                name: document.getElementById('tmName').value,
+                role: document.getElementById('tmRole').value,
+                specialties: document.getElementById('tmSpecialties').value,
+                email: document.getElementById('tmEmail').value,
+                phone: document.getElementById('tmPhone').value,
+                workDays: document.getElementById('tmDays').value,
+                startTime: document.getElementById('tmStart').value,
+                endTime: document.getElementById('tmEnd').value
+            };
+            try {
+                if (isEdit) {
+                    await updateTeamMember(existing.id, data);
+                } else {
+                    await addTeamMember(currentUser.uid, data);
+                }
+                btn.textContent = '✅ Saved!';
+                setTimeout(() => { modal.remove(); loadTeamGrid(); }, 600);
+            } catch (err) {
+                btn.textContent = '❌ Error';
+                setTimeout(() => { btn.textContent = isEdit ? 'Save Changes' : 'Add Member'; btn.disabled = false; }, 2000);
+            }
+        });
+    }
+
+    document.getElementById('addTeamMemberBtn')?.addEventListener('click', () => showTeamModal(null));
+    loadTeamGrid();
 
     // ---- SETTINGS TAB ----
     function populateSettings(profile) {

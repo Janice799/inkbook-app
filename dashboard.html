@@ -414,10 +414,27 @@
             </div>
         </section>
         <section class="tab-content" id="tab-settings">
-            <!-- Profile Settings -->
+            <!-- Team Members -->
             <div class="panel">
+                <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>👥 Team Members</h2>
+                    <button id="addTeamMemberBtn"
+                        style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">+
+                        Add Member</button>
+                </div>
+                <p style="padding:12px 24px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">Manage your
+                    team — add artists and staff who work at your shop. Each member gets their own profile and
+                    availability.</p>
+                <div id="teamGrid"
+                    style="padding:16px 24px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Loading team...</p>
+                </div>
+            </div>
+
+            <!-- Profile Settings (Shop Owner) -->
+            <div class="panel" style="margin-top:20px;">
                 <div class="panel-header">
-                    <h2>🎨 My Profile</h2>
+                    <h2>🎨 My Profile (Owner)</h2>
                 </div>
                 <p style="padding:16px 24px 0;font-size:0.8rem;color:var(--text-muted);line-height:1.5;">Your public
                     profile — this information appears on your booking page that clients see when they want to book an
