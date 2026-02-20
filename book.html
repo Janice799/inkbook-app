@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book with @inkmaster — InkBook</title>
+    <meta name="description"
+        content="Book your tattoo appointment, browse flash designs, and pay your deposit — all in one place." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/book.css" />
+</head>
+
+<body>
+    <!-- Artist Header -->
+    <header id="artist-header">
+        <div class="artist-cover"></div>
+        <div class="artist-info">
+            <div class="artist-avatar" id="artistAvatar">
+                <span>🎨</span>
+            </div>
+            <h1 class="artist-name" id="artistName">@inkmaster_kai</h1>
+            <p class="artist-bio" id="artistBio">Fine line specialist · Botanical & geometric · Los Angeles, CA</p>
+            <div class="artist-stats">
+                <div class="stat">
+                    <span class="stat-value">2.4k</span>
+                    <span class="stat-label">Bookings</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">4.9★</span>
+                    <span class="stat-label">Rating</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">6 yrs</span>
+                    <span class="stat-label">Experience</span>
+                </div>
+            </div>
+            <div class="artist-social">
+                <a href="#" class="social-link">📸 Instagram</a>
+                <a href="#" class="social-link">🌐 Portfolio</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Step Navigation -->
+        <div class="booking-steps">
+            <div class="step active" data-step="1">
+                <span class="step-num">1</span>
+                <span class="step-label">Choose Design</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2">
+                <span class="step-num">2</span>
+                <span class="step-label">Book a Slot</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3">
+                <span class="step-num">3</span>
+                <span class="step-label">Consent & Pay</span>
+            </div>
+        </div>
+
+        <!-- STEP 1: Flash Gallery -->
+        <section id="step1" class="step-content active">
+            <h2 class="step-title">Choose Your Design</h2>
+            <p class="step-desc">Pick from available flash designs or describe your custom idea below.</p>
+
+            <!-- Flash Gallery Grid -->
+            <div class="flash-gallery" id="flashGallery">
+                <div class="flash-card" data-id="1" data-price="200">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #2d1b69, #1a1a2e);">
+                        <span class="flash-emoji">🌹</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Rose Vine</span>
+                        <span class="flash-price">$200</span>
+                    </div>
+                    <span class="flash-size">4-5 inches · 2hrs</span>
+                </div>
+                <div class="flash-card" data-id="2" data-price="180">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #1b3a4b, #1a1a2e);">
+                        <span class="flash-emoji">🐍</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Serpent Wrap</span>
+                        <span class="flash-price">$180</span>
+                    </div>
+                    <span class="flash-size">6-7 inches · 3hrs</span>
+                </div>
+                <div class="flash-card" data-id="3" data-price="150">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #3d1b69, #1a1a2e);">
+                        <span class="flash-emoji">🦋</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Lunar Moth</span>
+                        <span class="flash-price">$150</span>
+                    </div>
+                    <span class="flash-size">3-4 inches · 1.5hrs</span>
+                </div>
+                <div class="flash-card" data-id="4" data-price="250">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #1b4b3a, #1a1a2e);">
+                        <span class="flash-emoji">🐉</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Dragon Coil</span>
+                        <span class="flash-price">$250</span>
+                    </div>
+                    <span class="flash-size">8-10 inches · 4hrs</span>
+                </div>
+                <div class="flash-card" data-id="5" data-price="120">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #4b1b1b, #1a1a2e);">
+                        <span class="flash-emoji">⚡</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Lightning Bolt</span>
+                        <span class="flash-price">$120</span>
+                    </div>
+                    <span class="flash-size">2-3 inches · 45min</span>
+                </div>
+                <div class="flash-card custom-card" data-id="custom" data-price="0">
+                    <div class="flash-img" style="background: linear-gradient(135deg, #333, #1a1a2e);">
+                        <span class="flash-emoji">✏️</span>
+                    </div>
+                    <div class="flash-info">
+                        <span class="flash-name">Custom Design</span>
+                        <span class="flash-price">Quote</span>
+                    </div>
+                    <span class="flash-size">Describe your idea</span>
+                </div>
+            </div>
+
+            <!-- Custom Design Area (hidden until custom selected) -->
+            <div class="custom-design-area" id="customDesignArea">
+                <h3>Describe Your Custom Tattoo</h3>
+                <textarea id="customDescription"
+                    placeholder="Describe your tattoo idea in detail... (style, placement, size, references)"
+                    rows="4"></textarea>
+                <div class="upload-area" id="uploadArea">
+                    <span class="upload-icon">📎</span>
+                    <p>Drop reference images here or <strong>click to browse</strong></p>
+                    <input type="file" id="refImages" multiple accept="image/*" hidden />
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="toStep2" disabled>
+                Continue to Scheduling →
+            </button>
+        </section>
+
+        <!-- STEP 2: Date & Time Picker -->
+        <section id="step2" class="step-content">
+            <h2 class="step-title">Pick Your Date & Time</h2>
+            <p class="step-desc">Select an available slot. All times shown in your local timezone.</p>
+
+            <div class="booking-layout">
+                <!-- Calendar -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="cal-nav" id="prevMonth">←</button>
+                        <h3 id="calendarMonth">March 2026</h3>
+                        <button class="cal-nav" id="nextMonth">→</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
+                        <span>THU</span><span>FRI</span><span>SAT</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+
+                <!-- Time Slots -->
+                <div class="time-slots-container">
+                    <h3 class="slots-title" id="slotsTitle">Select a date first</h3>
+                    <div class="time-slots" id="timeSlots"></div>
+                </div>
+            </div>
+
+            <!-- Booking Details -->
+            <div class="booking-details" id="bookingDetails">
+                <h3>Your Appointment</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Design</span>
+                    <span class="detail-value" id="summaryDesign">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date & Time</span>
+                    <span class="detail-value" id="summaryDate">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Estimated Price</span>
+                    <span class="detail-value" id="summaryPrice">—</span>
+                </div>
+                <div class="detail-row highlight">
+                    <span class="detail-label">Deposit (50%)</span>
+                    <span class="detail-value" id="summaryDeposit">—</span>
+                </div>
+            </div>
+
+            <div class="step-buttons">
+                <button class="btn btn-ghost" id="backToStep1">← Back</button>
+                <button class="btn btn-primary" id="toStep3" disabled>Continue to Payment →</button>
+            </div>
+        </section>
+
+        <!-- STEP 3: Consent & Payment -->
+        <section id="step3" class="step-content">
+            <h2 class="step-title">Consent & Deposit</h2>
+            <p class="step-desc">Complete the health form and secure your appointment with a deposit.</p>
+
+            <!-- Client Info -->
+            <div class="form-section">
+                <h3>Your Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="clientName">Full Name *</label>
+                        <input type="text" id="clientName" placeholder="Jane Doe" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="clientEmail">Email *</label>
+                        <input type="email" id="clientEmail" placeholder="jane@email.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="clientPhone">Phone</label>
+                        <input type="tel" id="clientPhone" placeholder="+1 (555) 000-0000" />
+                    </div>
+                    <div class="form-group">
+                        <label for="clientAge">Age *</label>
+                        <input type="number" id="clientAge" placeholder="21" min="18" required />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Consent -->
+            <div class="form-section">
+                <h3>Health & Consent</h3>
+                <div class="consent-checks">
+                    <label class="consent-item">
+                        <input type="checkbox" id="consent1" />
+                        <span>I am 18 years of age or older</span>
+                    </label>
+                    <label class="consent-item">
+                        <input type="checkbox" id="consent2" />
+                        <span>I am not under the influence of alcohol or drugs</span>
+                    </label>
+                    <label class="consent-item">
+                        <input type="checkbox" id="consent3" />
+                        <span>I have no skin conditions, allergies, or health issues that may affect healing</span>
+                    </label>
+                    <label class="consent-item">
+                        <input type="checkbox" id="consent4" />
+                        <span>I understand this is a permanent procedure and have considered my decision</span>
+                    </label>
+                    <label class="consent-item">
+                        <input type="checkbox" id="consent5" />
+                        <span>I agree to the <a href="#">aftercare instructions</a> and <a href="#">cancellation
+                                policy</a></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="payment-summary">
+                <h3>Payment Summary</h3>
+                <div class="detail-row">
+                    <span>Design: <span id="payDesign">—</span></span>
+                    <span id="payPrice">$0</span>
+                </div>
+                <div class="detail-row highlight">
+                    <span>Deposit Due Now (50%)</span>
+                    <span id="payDeposit" class="deposit-amount">$0</span>
+                </div>
+                <p class="payment-note">💡 Remaining balance is due at the studio on appointment day.</p>
+                <button class="btn btn-primary btn-full btn-lg" id="payBtn" disabled>
+                    💳 Pay Deposit with PayPal
+                </button>
+                <p class="secure-note">🔒 Secured by PayPal · Your data is encrypted</p>
+            </div>
+
+            <div class="step-buttons">
+                <button class="btn btn-ghost" id="backToStep2">← Back</button>
+            </div>
+        </section>
+
+        <!-- Success State -->
+        <section id="successState" class="step-content">
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h2>You're All Set!</h2>
+                <p>Your appointment has been booked and deposit received.</p>
+                <div class="success-details">
+                    <div class="detail-row">
+                        <span>Booking ID</span>
+                        <span id="bookingId">#INK-2026-0001</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Date & Time</span>
+                        <span id="successDate">—</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Design</span>
+                        <span id="successDesign">—</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Deposit Paid</span>
+                        <span id="successDeposit">—</span>
+                    </div>
+                </div>
+                <p class="success-note">📧 Confirmation email sent. See you at the studio!</p>
+                <a href="#" class="btn btn-ghost">Add to Google Calendar</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Powered By Footer -->
+    <footer class="book-footer">
+        <p>Powered by <a href="/">⚡ <strong>InkBook</strong></a> · <a href="/">Get your own booking page</a></p>
+    </footer>
+
+    <script type="module" src="/book.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — InkBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/dashboard.css" />
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Ink<span class="logo-accent">Book</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="overview">
+                <span class="nav-icon">📊</span>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="bookings">
+                <span class="nav-icon">📅</span>
+                <span>Bookings</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="gallery">
+                <span class="nav-icon">🎨</span>
+                <span>Flash Gallery</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="clients">
+                <span class="nav-icon">👥</span>
+                <span>Clients</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="earnings">
+                <span class="nav-icon">💰</span>
+                <span>Earnings</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="settings">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="artist-mini">
+                <div class="artist-mini-avatar">🎨</div>
+                <div>
+                    <div class="artist-mini-name">@inkmaster_kai</div>
+                    <div class="artist-mini-plan">Pro Plan</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-left">
+                <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                <h1 class="page-title" id="pageTitle">Overview</h1>
+            </div>
+            <div class="top-right">
+                <div class="booking-link-copy">
+                    <span class="link-text">book.inkbook.io/inkmaster_kai</span>
+                    <button class="copy-btn" id="copyLink" title="Copy booking link">📋</button>
+                </div>
+                <div class="notification-bell" id="notifBell">
+                    🔔
+                    <span class="notif-badge">3</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overview Tab -->
+        <section class="tab-content active" id="tab-overview">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">This Month Revenue</span>
+                        <span class="stat-card-icon">💰</span>
+                    </div>
+                    <div class="stat-card-value">$3,240</div>
+                    <div class="stat-card-change positive">↑ 18% vs last month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Total Bookings</span>
+                        <span class="stat-card-icon">📅</span>
+                    </div>
+                    <div class="stat-card-value">24</div>
+                    <div class="stat-card-change positive">↑ 6 more than last month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Deposits Collected</span>
+                        <span class="stat-card-icon">💳</span>
+                    </div>
+                    <div class="stat-card-value">$1,620</div>
+                    <div class="stat-card-change">50% of total revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">No-Show Rate</span>
+                        <span class="stat-card-icon">🎯</span>
+                    </div>
+                    <div class="stat-card-value">2%</div>
+                    <div class="stat-card-change positive">↓ from 15% before InkBook</div>
+                </div>
+            </div>
+
+            <!-- Today's Schedule + Recent Activity -->
+            <div class="overview-grid">
+                <!-- Today's Schedule -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Today's Schedule</h2>
+                        <span class="panel-date">Feb 20, 2026</span>
+                    </div>
+                    <div class="schedule-list">
+                        <div class="schedule-item completed">
+                            <div class="schedule-time">10:00 AM</div>
+                            <div class="schedule-info">
+                                <div class="schedule-client">Sarah Johnson</div>
+                                <div class="schedule-design">Rose Vine · Fine Line</div>
+                            </div>
+                            <div class="schedule-price">$200</div>
+                            <span class="schedule-status done">✓ Done</span>
+                        </div>
+                        <div class="schedule-item current">
+                            <div class="schedule-time">1:00 PM</div>
+                            <div class="schedule-info">
+                                <div class="schedule-client">Mike Chen</div>
+                                <div class="schedule-design">Dragon Coil · Blackwork</div>
+                            </div>
+                            <div class="schedule-price">$250</div>
+                            <span class="schedule-status now">● NOW</span>
+                        </div>
+                        <div class="schedule-item upcoming">
+                            <div class="schedule-time">3:00 PM</div>
+                            <div class="schedule-info">
+                                <div class="schedule-client">Emily Park</div>
+                                <div class="schedule-design">Custom · Geometric Sleeve</div>
+                            </div>
+                            <div class="schedule-price">$400</div>
+                            <span class="schedule-status next">Up Next</span>
+                        </div>
+                        <div class="schedule-item upcoming">
+                            <div class="schedule-time">5:00 PM</div>
+                            <div class="schedule-info">
+                                <div class="schedule-client">Alex Rivera</div>
+                                <div class="schedule-design">Lightning Bolt · Minimalist</div>
+                            </div>
+                            <div class="schedule-price">$120</div>
+                            <span class="schedule-status next">Up Next</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Recent Activity</h2>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-dot deposit"></div>
+                            <div class="activity-info">
+                                <span class="activity-text">Deposit received from <strong>Emma Wilson</strong></span>
+                                <span class="activity-meta">$125 · Rose Vine · 2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot booking"></div>
+                            <div class="activity-info">
+                                <span class="activity-text">New booking from <strong>James Liu</strong></span>
+                                <span class="activity-meta">Serpent Wrap · March 5 at 2PM</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot consent"></div>
+                            <div class="activity-info">
+                                <span class="activity-text">Consent form signed by <strong>Alex Rivera</strong></span>
+                                <span class="activity-meta">Today's 5PM appointment</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot deposit"></div>
+                            <div class="activity-info">
+                                <span class="activity-text">Deposit received from <strong>Taylor Kim</strong></span>
+                                <span class="activity-meta">$100 · Custom Design · Yesterday</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot cancel"></div>
+                            <div class="activity-info">
+                                <span class="activity-text"><strong>Chris Brown</strong> cancelled — deposit
+                                    forfeited</span>
+                                <span class="activity-meta">$75 retained · Less than 24h notice</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-card">
+                    <span class="action-icon">🔗</span>
+                    <span class="action-label">Share Booking Link</span>
+                </button>
+                <button class="action-card">
+                    <span class="action-icon">➕</span>
+                    <span class="action-label">Add Flash Design</span>
+                </button>
+                <button class="action-card">
+                    <span class="action-icon">📧</span>
+                    <span class="action-label">Send Reminder</span>
+                </button>
+                <button class="action-card">
+                    <span class="action-icon">📊</span>
+                    <span class="action-label">View Reports</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Bookings Tab -->
+        <section class="tab-content" id="tab-bookings">
+            <div class="tab-header">
+                <div class="tab-filters">
+                    <button class="filter-btn active">All</button>
+                    <button class="filter-btn">Upcoming</button>
+                    <button class="filter-btn">Completed</button>
+                    <button class="filter-btn">Cancelled</button>
+                </div>
+                <button class="btn-sm btn-primary-sm">+ Manual Booking</button>
+            </div>
+            <div class="bookings-table">
+                <div class="table-header">
+                    <span>Client</span>
+                    <span>Design</span>
+                    <span>Date & Time</span>
+                    <span>Deposit</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+                <div class="table-row">
+                    <span class="client-cell"><strong>Sarah Johnson</strong><br />sarah@email.com</span>
+                    <span>Rose Vine</span>
+                    <span>Feb 20, 10AM</span>
+                    <span class="deposit-paid">$100 ✓</span>
+                    <span><span class="status-badge completed-badge">Completed</span></span>
+                    <span><button class="table-action">View</button></span>
+                </div>
+                <div class="table-row">
+                    <span class="client-cell"><strong>Mike Chen</strong><br />mike@email.com</span>
+                    <span>Dragon Coil</span>
+                    <span>Feb 20, 1PM</span>
+                    <span class="deposit-paid">$125 ✓</span>
+                    <span><span class="status-badge active-badge">In Progress</span></span>
+                    <span><button class="table-action">View</button></span>
+                </div>
+                <div class="table-row">
+                    <span class="client-cell"><strong>Emily Park</strong><br />emily@email.com</span>
+                    <span>Custom Geometric</span>
+                    <span>Feb 20, 3PM</span>
+                    <span class="deposit-paid">$200 ✓</span>
+                    <span><span class="status-badge upcoming-badge">Upcoming</span></span>
+                    <span><button class="table-action">View</button></span>
+                </div>
+                <div class="table-row">
+                    <span class="client-cell"><strong>Emma Wilson</strong><br />emma@email.com</span>
+                    <span>Rose Vine</span>
+                    <span>Feb 22, 11AM</span>
+                    <span class="deposit-paid">$100 ✓</span>
+                    <span><span class="status-badge upcoming-badge">Upcoming</span></span>
+                    <span><button class="table-action">View</button></span>
+                </div>
+                <div class="table-row">
+                    <span class="client-cell"><strong>Chris Brown</strong><br />chris@email.com</span>
+                    <span>Lunar Moth</span>
+                    <span>Feb 19, 2PM</span>
+                    <span class="deposit-forfeit">$75 kept</span>
+                    <span><span class="status-badge cancelled-badge">Cancelled</span></span>
+                    <span><button class="table-action">View</button></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Tab -->
+        <section class="tab-content" id="tab-gallery">
+            <div class="tab-header">
+                <p class="tab-info">Manage your flash designs. Clients can browse and book directly from your gallery.
+                </p>
+                <button class="btn-sm btn-primary-sm">+ Upload Design</button>
+            </div>
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <div class="gallery-img" style="background: linear-gradient(135deg, #2d1b69, #1a1a2e);">
+                        <span>🌹</span>
+                    </div>
+                    <div class="gallery-info">
+                        <strong>Rose Vine</strong>
+                        <span>$200 · 4-5in · 2hrs</span>
+                    </div>
+                    <div class="gallery-stats">12 bookings</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-img" style="background: linear-gradient(135deg, #1b3a4b, #1a1a2e);">
+                        <span>🐍</span>
+                    </div>
+                    <div class="gallery-info">
+                        <strong>Serpent Wrap</strong>
+                        <span>$180 · 6-7in · 3hrs</span>
+                    </div>
+                    <div class="gallery-stats">8 bookings</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-img" style="background: linear-gradient(135deg, #3d1b69, #1a1a2e);">
+                        <span>🦋</span>
+                    </div>
+                    <div class="gallery-info">
+                        <strong>Lunar Moth</strong>
+                        <span>$150 · 3-4in · 1.5hrs</span>
+                    </div>
+                    <div class="gallery-stats">15 bookings</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-img" style="background: linear-gradient(135deg, #1b4b3a, #1a1a2e);">
+                        <span>🐉</span>
+                    </div>
+                    <div class="gallery-info">
+                        <strong>Dragon Coil</strong>
+                        <span>$250 · 8-10in · 4hrs</span>
+                    </div>
+                    <div class="gallery-stats">6 bookings</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-img" style="background: linear-gradient(135deg, #4b1b1b, #1a1a2e);">
+                        <span>⚡</span>
+                    </div>
+                    <div class="gallery-info">
+                        <strong>Lightning Bolt</strong>
+                        <span>$120 · 2-3in · 45min</span>
+                    </div>
+                    <div class="gallery-stats">22 bookings</div>
+                </div>
+                <div class="gallery-card add-new">
+                    <div class="gallery-img" style="background: var(--bg-secondary);"><span>➕</span></div>
+                    <div class="gallery-info">
+                        <strong>Add New Design</strong>
+                        <span>Upload flash art</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Earnings Tab -->
+        <section class="tab-content" id="tab-earnings">
+            <div class="earnings-summary">
+                <div class="earnings-big-card">
+                    <span class="earnings-label">Total Earnings (2026)</span>
+                    <span class="earnings-value">$12,480</span>
+                    <span class="earnings-sub">From 87 completed bookings</span>
+                </div>
+                <div class="earnings-big-card">
+                    <span class="earnings-label">Available Balance</span>
+                    <span class="earnings-value accent">$1,620</span>
+                    <span class="earnings-sub">Ready to withdraw via PayPal</span>
+                    <button class="btn-sm btn-primary-sm" style="margin-top:12px;">Withdraw to PayPal</button>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Recent Transactions</h2>
+                </div>
+                <div class="transaction-list">
+                    <div class="transaction">
+                        <div class="tx-icon deposit-icon">↓</div>
+                        <div class="tx-info">
+                            <strong>Deposit — Emma Wilson</strong>
+                            <span>Rose Vine · Feb 20</span>
+                        </div>
+                        <span class="tx-amount positive">+$100</span>
+                    </div>
+                    <div class="transaction">
+                        <div class="tx-icon deposit-icon">↓</div>
+                        <div class="tx-info">
+                            <strong>Deposit — James Liu</strong>
+                            <span>Serpent Wrap · Feb 19</span>
+                        </div>
+                        <span class="tx-amount positive">+$90</span>
+                    </div>
+                    <div class="transaction">
+                        <div class="tx-icon forfeit-icon">⚠</div>
+                        <div class="tx-info">
+                            <strong>Forfeit — Chris Brown</strong>
+                            <span>Cancelled, deposit retained</span>
+                        </div>
+                        <span class="tx-amount positive">+$75</span>
+                    </div>
+                    <div class="transaction">
+                        <div class="tx-icon withdraw-icon">↑</div>
+                        <div class="tx-info">
+                            <strong>PayPal Withdrawal</strong>
+                            <span>To bank account · Feb 15</span>
+                        </div>
+                        <span class="tx-amount negative">-$2,500</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings / Clients tabs placeholder -->
+        <section class="tab-content" id="tab-clients">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Client Directory</h2>
+                </div>
+                <p style="padding:24px; color:var(--text-secondary);">Client CRM coming in v1.1 — Track history,
+                    allergies, and previous work.</p>
+            </div>
+        </section>
+        <section class="tab-content" id="tab-settings">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Settings</h2>
+                </div>
+                <p style="padding:24px; color:var(--text-secondary);">Profile, availability, pricing, and integrations
+                    settings coming soon.</p>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="/dashboard.js"></script>
+</body>
+
+</html>
