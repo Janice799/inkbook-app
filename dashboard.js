@@ -1167,29 +1167,42 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('actionViewReports')?.addEventListener('click', async () => {
         document.getElementById('reportModal')?.remove();
         const stats = await getMonthlyStats(currentUser.uid);
-        const s = stats.success ? stats.data : { total: 0, completed: 0, cancelled: 0, revenue: 0 };
+        const s = stats.success ? stats.data : { totalBookings: 0, completedBookings: 0, cancelledBookings: 0, totalRevenue: 0, depositsCollected: 0, noShowRate: 0 };
+        const now = new Date();
+        const monthName = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
         const modal = document.createElement('div');
         modal.id = 'reportModal';
         modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
         modal.innerHTML = `
-            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;">
-                <h3 style="margin-bottom:20px;color:var(--text-primary);">📊 Monthly Report</h3>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:520px;width:92%;">
+                <h3 style="margin-bottom:6px;color:var(--text-primary);">📊 Monthly Report</h3>
+                <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:20px;">${monthName}</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
                     <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
-                        <div style="font-size:1.8rem;font-weight:700;color:var(--accent-bright);">${s.total}</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Total Bookings</div>
+                        <div style="font-size:2rem;font-weight:700;color:var(--accent-bright);">${s.totalBookings}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Total Bookings</div>
                     </div>
                     <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
-                        <div style="font-size:1.8rem;font-weight:700;color:var(--success);">$${s.revenue}</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Revenue</div>
+                        <div style="font-size:2rem;font-weight:700;color:#00c853;">$${s.totalRevenue}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Revenue</div>
                     </div>
                     <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
-                        <div style="font-size:1.8rem;font-weight:700;color:var(--text-primary);">${s.completed}</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Completed</div>
+                        <div style="font-size:2rem;font-weight:700;color:var(--text-primary);">${s.completedBookings}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Completed</div>
                     </div>
                     <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
-                        <div style="font-size:1.8rem;font-weight:700;color:var(--danger);">${s.cancelled}</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Cancelled</div>
+                        <div style="font-size:2rem;font-weight:700;color:#ff4d4d;">${s.cancelledBookings}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Cancelled</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:20px;">
+                    <div style="flex:1;background:var(--bg-primary);padding:14px;border-radius:10px;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:700;color:#4ecdc4;">$${s.depositsCollected}</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px;">Deposits Collected</div>
+                    </div>
+                    <div style="flex:1;background:var(--bg-primary);padding:14px;border-radius:10px;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:700;color:#ffab00;">${s.noShowRate}%</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px;">No-Show Rate</div>
                     </div>
                 </div>
                 <button id="closeReport" style="width:100%;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>

@@ -226,18 +226,23 @@ export function listenToBookings(artistId, callback) {
 export async function getMonthlyStats(artistId) {
     try {
         const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
 
+        // Get all bookings for this artist (no date filter in query — handles mixed date formats)
         const q = query(
             collection(db, 'bookings'),
-            where('artistId', '==', artistId),
-            where('date', '>=', Timestamp.fromDate(monthStart)),
-            where('date', '<=', Timestamp.fromDate(monthEnd))
+            where('artistId', '==', artistId)
         );
 
         const snap = await getDocs(q);
-        const bookings = snap.docs.map(d => d.data());
+        const allBookings = snap.docs.map(d => d.data());
+
+        // Filter to this month's bookings in JS
+        const bookings = allBookings.filter(b => {
+            const d = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+            return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
 
         const stats = {
             totalBookings: bookings.length,
@@ -249,7 +254,11 @@ export async function getMonthlyStats(artistId) {
                 .reduce((sum, b) => sum + (b.totalPrice || 0), 0),
             depositsCollected: bookings
                 .filter(b => b.depositPaid)
-                .reduce((sum, b) => sum + (b.depositAmount || 0), 0)
+                .reduce((sum, b) => sum + (b.depositAmount || 0), 0),
+            // Also include pending/confirmed revenue estimate
+            pendingRevenue: bookings
+                .filter(b => b.status === 'confirmed' || b.status === 'pending')
+                .reduce((sum, b) => sum + (b.totalPrice || 0), 0)
         };
 
         stats.noShowRate = stats.totalBookings > 0
