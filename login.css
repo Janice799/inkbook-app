@@ -297,6 +297,32 @@ body {
     transform: translateY(-1px);
 }
 
+/* Guest Button */
+.guest-login-section {
+    margin-top: 4px;
+}
+
+.btn-guest {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--accent-bright);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    transition: all 0.3s;
+    margin-top: 4px;
+}
+
+.btn-guest:hover {
+    background: rgba(155, 93, 229, 0.1);
+    border-color: var(--accent-bright);
+    transform: translateY(-1px);
+}
+
 /* Footer */
 .form-footer {
     text-align: center;

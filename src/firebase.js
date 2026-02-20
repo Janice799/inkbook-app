@@ -2,7 +2,7 @@
 // InkBook — Firebase Configuration
 // ============================================================
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -28,7 +28,7 @@ export {
     app, auth, db, storage, googleProvider,
     // Auth
     signInWithPopup, signOut, onAuthStateChanged,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously,
     // Firestore
     collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
     query, where, orderBy, onSnapshot, serverTimestamp, Timestamp,

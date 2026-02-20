@@ -1,7 +1,7 @@
 // ============================================================
 // InkBook — Login Page Logic
 // ============================================================
-import { registerArtist, loginArtist, loginWithGoogle, onAuthChange } from './src/auth.js';
+import { registerArtist, loginArtist, loginWithGoogle, loginAsGuest, onAuthChange } from './src/auth.js';
 
 const signInForm = document.getElementById('signInForm');
 const signUpForm = document.getElementById('signUpForm');
@@ -81,6 +81,29 @@ async function handleGoogle() {
 onAuthChange((user) => {
     if (user) {
         window.location.href = '/dashboard.html';
+    }
+});
+
+// ---- Guest Login ----
+document.getElementById('guestLoginBtn')?.addEventListener('click', async () => {
+    const nickname = document.getElementById('guestNickname')?.value.trim();
+    if (!nickname) {
+        showToast('Please enter a nickname', 'error');
+        return;
+    }
+    if (nickname.length < 2) {
+        showToast('Nickname must be at least 2 characters', 'error');
+        return;
+    }
+
+    showToast('Entering as guest...', 'info');
+    const result = await loginAsGuest(nickname);
+
+    if (result.success) {
+        showToast(`Welcome, ${nickname}! 🎨`, 'success');
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 1000);
+    } else {
+        showToast(result.error, 'error');
     }
 });
 
