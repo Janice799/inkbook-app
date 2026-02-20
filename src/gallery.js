@@ -1,10 +1,11 @@
 // ============================================================
 // InkBook — Flash Gallery Service
-// Manage flash designs for artists
+// Manages flash designs: upload, list, toggle, delete
+// Images are uploaded to Firebase Storage under artists/{uid}/flash/
 // ============================================================
 import {
     db, storage,
-    collection, doc, addDoc, getDocs, updateDoc, deleteDoc,
+    collection, doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc,
     query, where, orderBy, serverTimestamp,
     ref, uploadBytes, getDownloadURL
 } from './firebase.js';
@@ -16,7 +17,7 @@ export async function uploadFlashDesign(artistId, designData, imageFile) {
 
         // Upload image to Storage if provided
         if (imageFile) {
-            const fileName = `flash_${Date.now()}_${imageFile.name}`;
+            const fileName = `${Date.now()}_${imageFile.name}`;
             const storageRef = ref(storage, `artists/${artistId}/flash/${fileName}`);
             const snapshot = await uploadBytes(storageRef, imageFile);
             imageUrl = await getDownloadURL(snapshot.ref);
@@ -28,9 +29,9 @@ export async function uploadFlashDesign(artistId, designData, imageFile) {
             name: designData.name,
             description: designData.description || '',
             price: designData.price,
-            size: designData.size || '',       // e.g., "4-5 inches"
-            duration: designData.duration || '', // e.g., "2hrs"
-            style: designData.style || '',      // e.g., "Fine Line"
+            size: designData.size || '',
+            duration: designData.duration || '',
+            style: designData.style || '',
             imageUrl,
             available: true,
             bookingCount: 0,
@@ -95,6 +96,7 @@ export async function toggleDesignAvailability(designId, available) {
 // ---- Delete Flash Design ----
 export async function deleteFlashDesign(designId) {
     try {
+        // Note: Image in Storage is not deleted for simplicity
         await deleteDoc(doc(db, 'flash_designs', designId));
         return { success: true };
     } catch (error) {
@@ -105,7 +107,7 @@ export async function deleteFlashDesign(designId) {
 // ---- Increment Booking Count ----
 export async function incrementDesignBookingCount(designId) {
     try {
-        const designSnap = await import('./firebase.js').then(m => m.getDoc(doc(db, 'flash_designs', designId)));
+        const designSnap = await getDoc(doc(db, 'flash_designs', designId));
         if (designSnap.exists()) {
             const currentCount = designSnap.data().bookingCount || 0;
             await updateDoc(doc(db, 'flash_designs', designId), {
