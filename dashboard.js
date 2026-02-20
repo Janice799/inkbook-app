@@ -459,14 +459,19 @@ function renderClients(clients, container) {
         container.innerHTML = '<p style="color:var(--text-muted);padding:20px;text-align:center;">No matching clients.</p>';
         return;
     }
-    container.innerHTML = clients.map(c => {
+    container.innerHTML = '';
+    clients.forEach(c => {
         const lastBooking = c.bookings[0];
         const lastRaw = lastBooking?.date?.toDate ? lastBooking.date.toDate() : (lastBooking?.date ? new Date(lastBooking.date) : null);
         const lastDateStr = lastRaw ? lastRaw.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
         const statusCounts = { confirmed: 0, completed: 0, cancelled: 0, pending: 0 };
         c.bookings.forEach(b => { if (statusCounts[b.status] !== undefined) statusCounts[b.status]++; });
-        return `
-        <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='var(--bg-primary)'" onmouseout="this.style.background='transparent'">
+
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:background 0.2s;';
+        row.onmouseover = () => row.style.background = 'var(--bg-primary)';
+        row.onmouseout = () => row.style.background = 'transparent';
+        row.innerHTML = `
             <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;flex-shrink:0;">${c.name.charAt(0).toUpperCase()}</div>
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -486,9 +491,102 @@ function renderClients(clients, container) {
             <div style="text-align:right;min-width:90px;">
                 <div style="font-size:0.75rem;color:var(--text-secondary);">${lastDateStr}</div>
                 <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">✅${statusCounts.completed} 📅${statusCounts.confirmed} ❌${statusCounts.cancelled}</div>
+            </div>`;
+        row.addEventListener('click', () => showClientDetailModal(c));
+        container.appendChild(row);
+    });
+}
+
+function showClientDetailModal(client) {
+    document.getElementById('clientDetailModal')?.remove();
+    const c = client;
+    const modal = document.createElement('div');
+    modal.id = 'clientDetailModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+
+    const bookingRows = c.bookings.sort((a, b) => {
+        const da = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+        const db2 = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+        return db2 - da;
+    }).map(b => {
+        const d = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+        const ds = d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const statusColor = { completed: '#00c853', confirmed: '#4ecdc4', cancelled: '#ff4d4d', pending: '#ffab00' }[b.status] || '#999';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};flex-shrink:0;"></span>
+            <div style="flex:1;">
+                <div style="font-size:0.85rem;color:var(--text-primary);">${b.designName || 'Custom'}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">${ds} ${b.timeSlot || ''}</div>
             </div>
+            <span style="font-size:0.7rem;text-transform:uppercase;color:${statusColor};font-weight:600;">${b.status}</span>
+            <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">$${b.totalPrice || 0}</span>
         </div>`;
     }).join('');
+
+    modal.innerHTML = `
+        <div style="background:var(--bg-secondary);border-radius:16px;padding:0;max-width:560px;width:92%;max-height:90vh;overflow-y:auto;">
+            <div style="padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.4rem;flex-shrink:0;">${c.name.charAt(0).toUpperCase()}</div>
+                <div style="flex:1;">
+                    <h3 style="color:var(--text-primary);margin:0 0 4px;font-size:1.1rem;">${c.name}</h3>
+                    <div style="color:var(--text-muted);font-size:0.8rem;">${c.bookings.length} bookings · $${c.totalSpent} spent</div>
+                </div>
+                <button id="closeClientModal" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;">✕</button>
+            </div>
+            <div style="padding:20px 28px;">
+                <h4 style="color:var(--text-secondary);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">Contact Info</h4>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;">Name</label>
+                        <input type="text" id="cdName" value="${c.name}" style="width:100%;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;">Age</label>
+                        <input type="text" id="cdAge" value="${c.age || ''}" style="width:100%;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;">Email</label>
+                        <input type="email" id="cdEmail" value="${c.email}" style="width:100%;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;">Phone</label>
+                        <input type="text" id="cdPhone" value="${c.phone || ''}" style="width:100%;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    </div>
+                </div>
+                <button id="saveClientInfo" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;margin-bottom:20px;">💾 Save Changes</button>
+                <h4 style="color:var(--text-secondary);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Booking History</h4>
+                <div style="max-height:250px;overflow-y:auto;">
+                    ${bookingRows || '<p style="color:var(--text-muted);font-size:0.85rem;">No bookings</p>'}
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('closeClientModal').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Save client info → update all bookings for this client
+    document.getElementById('saveClientInfo').addEventListener('click', async () => {
+        const btn = document.getElementById('saveClientInfo');
+        btn.textContent = 'Saving...'; btn.disabled = true;
+        const newName = document.getElementById('cdName').value;
+        const newAge = document.getElementById('cdAge').value;
+        const newEmail = document.getElementById('cdEmail').value;
+        const newPhone = document.getElementById('cdPhone').value;
+        try {
+            for (const b of c.bookings) {
+                await updateDoc(doc(db, 'bookings', b.id), {
+                    clientName: newName,
+                    clientAge: newAge,
+                    clientEmail: newEmail,
+                    clientPhone: newPhone
+                });
+            }
+            btn.textContent = '✅ Saved!';
+            setTimeout(() => { modal.remove(); loadClients(); }, 800);
+        } catch (err) {
+            btn.textContent = '❌ Error'; btn.disabled = false;
+        }
+    });
 }
 
 // ---- Gallery ----
