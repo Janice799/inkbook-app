@@ -211,19 +211,19 @@
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <button class="action-card">
+                <button class="action-card" id="actionShareLink">
                     <span class="action-icon">🔗</span>
                     <span class="action-label">Share Booking Link</span>
                 </button>
-                <button class="action-card">
+                <button class="action-card" id="actionAddFlash">
                     <span class="action-icon">➕</span>
                     <span class="action-label">Add Flash Design</span>
                 </button>
-                <button class="action-card">
+                <button class="action-card" id="actionSendReminder">
                     <span class="action-icon">📧</span>
                     <span class="action-label">Send Reminder</span>
                 </button>
-                <button class="action-card">
+                <button class="action-card" id="actionViewReports">
                     <span class="action-icon">📊</span>
                     <span class="action-label">View Reports</span>
                 </button>
@@ -365,54 +365,22 @@
         <section class="tab-content" id="tab-earnings">
             <div class="earnings-summary">
                 <div class="earnings-big-card">
-                    <span class="earnings-label">Total Earnings (2026)</span>
-                    <span class="earnings-value">$12,480</span>
-                    <span class="earnings-sub">From 87 completed bookings</span>
+                    <span class="earnings-label">Total Earnings (This Month)</span>
+                    <span class="earnings-value" id="earningsTotal">$0</span>
+                    <span class="earnings-sub" id="earningsBookings">From 0 completed bookings</span>
                 </div>
                 <div class="earnings-big-card">
-                    <span class="earnings-label">Available Balance</span>
-                    <span class="earnings-value accent">$1,620</span>
-                    <span class="earnings-sub">Ready to withdraw via PayPal</span>
-                    <button class="btn-sm btn-primary-sm" style="margin-top:12px;">Withdraw to PayPal</button>
+                    <span class="earnings-label">Deposit Collected</span>
+                    <span class="earnings-value accent" id="earningsDeposits">$0</span>
+                    <span class="earnings-sub" id="earningsPending">0 pending bookings</span>
                 </div>
             </div>
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Recent Transactions</h2>
+                    <h2>Recent Booking Transactions</h2>
                 </div>
-                <div class="transaction-list">
-                    <div class="transaction">
-                        <div class="tx-icon deposit-icon">↓</div>
-                        <div class="tx-info">
-                            <strong>Deposit — Emma Wilson</strong>
-                            <span>Rose Vine · Feb 20</span>
-                        </div>
-                        <span class="tx-amount positive">+$100</span>
-                    </div>
-                    <div class="transaction">
-                        <div class="tx-icon deposit-icon">↓</div>
-                        <div class="tx-info">
-                            <strong>Deposit — James Liu</strong>
-                            <span>Serpent Wrap · Feb 19</span>
-                        </div>
-                        <span class="tx-amount positive">+$90</span>
-                    </div>
-                    <div class="transaction">
-                        <div class="tx-icon forfeit-icon">⚠</div>
-                        <div class="tx-info">
-                            <strong>Forfeit — Chris Brown</strong>
-                            <span>Cancelled, deposit retained</span>
-                        </div>
-                        <span class="tx-amount positive">+$75</span>
-                    </div>
-                    <div class="transaction">
-                        <div class="tx-icon withdraw-icon">↑</div>
-                        <div class="tx-info">
-                            <strong>PayPal Withdrawal</strong>
-                            <span>To bank account · Feb 15</span>
-                        </div>
-                        <span class="tx-amount negative">-$2,500</span>
-                    </div>
+                <div class="transaction-list" id="earningsTransactionList">
+                    <p style="padding:24px;color:var(--text-muted);font-size:0.9rem;">Loading transactions...</p>
                 </div>
             </div>
         </section>

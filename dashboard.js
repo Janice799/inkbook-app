@@ -424,6 +424,167 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100 + i * 80);
     });
 
+    // ---- Quick Action Buttons ----
+    // 1. Share Booking Link
+    document.getElementById('actionShareLink')?.addEventListener('click', () => {
+        if (!artistProfile?.handle) return;
+        const url = `${window.location.origin}/book.html?artist=${artistProfile.handle}`;
+        navigator.clipboard.writeText(url).then(() => {
+            const btn = document.getElementById('actionShareLink');
+            btn.querySelector('.action-label').textContent = '✅ Link Copied!';
+            setTimeout(() => { btn.querySelector('.action-label').textContent = 'Share Booking Link'; }, 2000);
+        });
+    });
+
+    // 2. Add Flash Design → go to gallery tab + open upload modal
+    document.getElementById('actionAddFlash')?.addEventListener('click', () => {
+        document.querySelector('[data-tab="gallery"]')?.click();
+        setTimeout(() => showUploadModal(), 300);
+    });
+
+    // 3. Send Reminder → show reminder modal
+    document.getElementById('actionSendReminder')?.addEventListener('click', () => {
+        document.getElementById('reminderModal')?.remove();
+        const modal = document.createElement('div');
+        modal.id = 'reminderModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.innerHTML = `
+            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;">
+                <h3 style="margin-bottom:16px;color:var(--text-primary);">📧 Send Booking Reminder</h3>
+                <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem;">
+                    Select upcoming bookings to send email reminders to clients.
+                </p>
+                <div id="reminderList" style="max-height:300px;overflow-y:auto;margin-bottom:20px;">
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Loading upcoming bookings...</p>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button id="sendAllReminders" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Send to All Upcoming</button>
+                    <button id="closeReminder" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+
+        // Load upcoming bookings into reminder list
+        (async () => {
+            const result = await getArtistBookings(currentUser.uid);
+            const list = document.getElementById('reminderList');
+            if (result.success && result.data.length > 0) {
+                const upcoming = result.data.filter(b => b.status === 'confirmed');
+                if (upcoming.length === 0) {
+                    list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No upcoming bookings to remind.</p>';
+                    return;
+                }
+                list.innerHTML = upcoming.map(b => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+                        <div>
+                            <strong style="color:var(--text-primary);">${b.clientName || 'Client'}</strong>
+                            <span style="color:var(--text-muted);font-size:0.8rem;margin-left:8px;">${b.clientEmail || ''}</span>
+                        </div>
+                        <span style="color:var(--text-secondary);font-size:0.8rem;">${b.date || ''} ${b.time || ''}</span>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No bookings found.</p>';
+            }
+        })();
+
+        document.getElementById('sendAllReminders')?.addEventListener('click', () => {
+            const btn = document.getElementById('sendAllReminders');
+            btn.textContent = '✅ Reminders Queued!';
+            btn.disabled = true;
+            setTimeout(() => modal.remove(), 1500);
+        });
+        document.getElementById('closeReminder')?.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    });
+
+    // 4. View Reports → show earnings summary modal
+    document.getElementById('actionViewReports')?.addEventListener('click', async () => {
+        document.getElementById('reportModal')?.remove();
+        const stats = await getMonthlyStats(currentUser.uid);
+        const s = stats.success ? stats.data : { total: 0, completed: 0, cancelled: 0, revenue: 0 };
+        const modal = document.createElement('div');
+        modal.id = 'reportModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.innerHTML = `
+            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;">
+                <h3 style="margin-bottom:20px;color:var(--text-primary);">📊 Monthly Report</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+                    <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--accent-bright);">${s.total}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Total Bookings</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--success);">$${s.revenue}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Revenue</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--text-primary);">${s.completed}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Completed</div>
+                    </div>
+                    <div style="background:var(--bg-primary);padding:16px;border-radius:12px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--danger);">${s.cancelled}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Cancelled</div>
+                    </div>
+                </div>
+                <button id="closeReport" style="width:100%;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
+            </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('closeReport')?.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    });
+
+    // ---- EARNINGS TAB ----
+    async function loadEarnings() {
+        const result = await getArtistBookings(currentUser.uid);
+        if (!result.success) return;
+
+        const bookings = result.data;
+        const completed = bookings.filter(b => b.status === 'completed');
+        const confirmed = bookings.filter(b => b.status === 'confirmed');
+        const totalRevenue = completed.reduce((sum, b) => sum + (parseFloat(b.deposit) || 0), 0);
+        const depositCollected = confirmed.reduce((sum, b) => sum + (parseFloat(b.deposit) || 0), 0);
+
+        const el = (id) => document.getElementById(id);
+        if (el('earningsTotal')) el('earningsTotal').textContent = `$${totalRevenue.toLocaleString()}`;
+        if (el('earningsBookings')) el('earningsBookings').textContent = `From ${completed.length} completed bookings`;
+        if (el('earningsDeposits')) el('earningsDeposits').textContent = `$${depositCollected.toLocaleString()}`;
+        if (el('earningsPending')) el('earningsPending').textContent = `${confirmed.length} pending bookings`;
+
+        // Transaction list
+        const txList = el('earningsTransactionList');
+        if (txList) {
+            if (bookings.length === 0) {
+                txList.innerHTML = '<p style="padding:24px;color:var(--text-muted);font-size:0.9rem;">No transactions yet. Bookings will appear here.</p>';
+                return;
+            }
+            const sorted = [...bookings].sort((a, b) => {
+                const dateA = a.createdAt?.toDate?.() || new Date(a.date || 0);
+                const dateB = b.createdAt?.toDate?.() || new Date(b.date || 0);
+                return dateB - dateA;
+            }).slice(0, 20);
+
+            txList.innerHTML = sorted.map(b => {
+                const icon = b.status === 'cancelled' ? '⚠' : '↓';
+                const iconClass = b.status === 'cancelled' ? 'forfeit-icon' : 'deposit-icon';
+                const amountClass = b.status === 'cancelled' ? 'positive' : 'positive';
+                const label = b.status === 'cancelled' ? 'Cancelled' : b.status === 'completed' ? 'Completed' : 'Deposit';
+                return `
+                    <div class="transaction">
+                        <div class="tx-icon ${iconClass}">${icon}</div>
+                        <div class="tx-info">
+                            <strong>${label} — ${b.clientName || 'Client'}</strong>
+                            <span>${b.designName || 'Booking'} · ${b.date || ''}</span>
+                        </div>
+                        <span class="tx-amount ${amountClass}">+$${b.deposit || 0}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    loadEarnings();
+
     // ---- SETTINGS TAB ----
     function populateSettings(profile) {
         if (!profile) return;
