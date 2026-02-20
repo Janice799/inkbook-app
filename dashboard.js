@@ -257,13 +257,7 @@ function showBookingDetailModal(booking) {
                     </div>
                     <div>
                         <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time</label>
-                        <select id="ebTime" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
-                            ${['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'].map(t => {
-        const h = parseInt(t); const m = t.split(':')[1];
-        const label = h >= 13 ? `${h - 12}:${m} PM` : h === 12 ? `12:${m} PM` : `${h}:${m} AM`;
-        return `<option value="${t}" ${t === timeVal ? 'selected' : ''}>${label}</option>`;
-    }).join('')}
-                        </select>
+                        <input type="time" id="ebTime" value="${timeVal}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
@@ -685,33 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time *</label>
-                            <select id="mbTime" required style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
-                                <option value="09:00">9:00 AM</option>
-                                <option value="09:30">9:30 AM</option>
-                                <option value="10:00">10:00 AM</option>
-                                <option value="10:30">10:30 AM</option>
-                                <option value="11:00">11:00 AM</option>
-                                <option value="11:30">11:30 AM</option>
-                                <option value="12:00">12:00 PM</option>
-                                <option value="12:30">12:30 PM</option>
-                                <option value="13:00">1:00 PM</option>
-                                <option value="13:30">1:30 PM</option>
-                                <option value="14:00" selected>2:00 PM</option>
-                                <option value="14:30">2:30 PM</option>
-                                <option value="15:00">3:00 PM</option>
-                                <option value="15:30">3:30 PM</option>
-                                <option value="16:00">4:00 PM</option>
-                                <option value="16:30">4:30 PM</option>
-                                <option value="17:00">5:00 PM</option>
-                                <option value="17:30">5:30 PM</option>
-                                <option value="18:00">6:00 PM</option>
-                                <option value="18:30">6:30 PM</option>
-                                <option value="19:00">7:00 PM</option>
-                                <option value="19:30">7:30 PM</option>
-                                <option value="20:00">8:00 PM</option>
-                                <option value="20:30">8:30 PM</option>
-                                <option value="21:00">9:00 PM</option>
-                            </select>
+                            <input type="time" id="mbTime" required value="14:00" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Duration (hrs)</label>
