@@ -2,7 +2,7 @@
 // InkBook — Dashboard Logic (Firebase Connected)
 // ============================================================
 import { onAuthChange, logoutArtist, getArtistProfile } from './src/auth.js';
-import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus } from './src/bookings.js';
+import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus, createBooking } from './src/bookings.js';
 import { getArtistFlashDesigns, uploadFlashDesign, toggleDesignAvailability, deleteFlashDesign } from './src/gallery.js';
 import { db, doc, updateDoc, serverTimestamp } from './src/firebase.js';
 
@@ -391,6 +391,147 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
             const filter = btn.textContent.toLowerCase();
             loadBookingsTable(filter === 'all' ? null : filter === 'upcoming' ? 'confirmed' : filter);
+        });
+    });
+
+    // ---- Manual Booking ----
+    document.getElementById('manualBookingBtn')?.addEventListener('click', () => {
+        document.getElementById('manualBookingModal')?.remove();
+
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const defaultDate = tomorrow.toISOString().split('T')[0];
+
+        const modal = document.createElement('div');
+        modal.id = 'manualBookingModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.innerHTML = `
+            <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;">
+                <h3 style="margin-bottom:20px;color:var(--text-primary);">📅 New Manual Booking</h3>
+                <form id="manualBookingForm" style="display:flex;flex-direction:column;gap:14px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Client Name *</label>
+                            <input type="text" id="mbClientName" required placeholder="John Doe" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Client Email *</label>
+                            <input type="email" id="mbClientEmail" required placeholder="john@email.com" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Phone</label>
+                            <input type="tel" id="mbClientPhone" placeholder="555-1234" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Client Age *</label>
+                            <input type="number" id="mbClientAge" required min="18" placeholder="18+" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Design / Description *</label>
+                        <input type="text" id="mbDesignName" required placeholder="Rose vine sleeve" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date *</label>
+                            <input type="date" id="mbDate" required value="${defaultDate}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time *</label>
+                            <input type="time" id="mbTime" required value="14:00" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Duration (hrs)</label>
+                            <input type="number" id="mbDuration" value="2" min="1" max="12" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Total Price ($) *</label>
+                            <input type="number" id="mbPrice" required placeholder="200" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Deposit ($)</label>
+                            <input type="number" id="mbDeposit" placeholder="100" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Status</label>
+                            <select id="mbStatus" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                <option value="confirmed">Confirmed</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Deposit Paid?</label>
+                            <select id="mbDepositPaid" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                <option value="yes">Yes — Paid</option>
+                                <option value="no" selected>No — Not yet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Create Booking</button>
+                        <button type="button" id="cancelManualBooking" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
+                    </div>
+                </form>
+            </div>`;
+        document.body.appendChild(modal);
+
+        document.getElementById('cancelManualBooking').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        document.getElementById('manualBookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.textContent = 'Creating...';
+            btn.disabled = true;
+
+            const price = parseFloat(document.getElementById('mbPrice').value) || 0;
+            const deposit = parseFloat(document.getElementById('mbDeposit').value) || Math.round(price * 0.5);
+
+            const result = await createBooking({
+                artistId: currentUser.uid,
+                artistHandle: artistProfile?.handle || '',
+                clientName: document.getElementById('mbClientName').value,
+                clientEmail: document.getElementById('mbClientEmail').value,
+                clientPhone: document.getElementById('mbClientPhone').value,
+                clientAge: parseInt(document.getElementById('mbClientAge').value),
+                designId: null,
+                designName: document.getElementById('mbDesignName').value,
+                designType: 'custom',
+                date: document.getElementById('mbDate').value,
+                timeSlot: document.getElementById('mbTime').value,
+                estimatedDuration: parseInt(document.getElementById('mbDuration').value) * 60,
+                totalPrice: price,
+                depositAmount: deposit,
+                consentSigned: true
+            });
+
+            if (result.success) {
+                // Update status + deposit paid
+                const status = document.getElementById('mbStatus').value;
+                const paid = document.getElementById('mbDepositPaid').value === 'yes';
+                await updateDoc(doc(db, 'bookings', result.bookingId), {
+                    status,
+                    depositPaid: paid
+                });
+
+                btn.textContent = '✅ Created!';
+                setTimeout(() => {
+                    modal.remove();
+                    loadBookingsTable();
+                    loadEarnings();
+                }, 1000);
+            } else {
+                btn.textContent = '❌ Error';
+                console.error(result.error);
+                setTimeout(() => { btn.textContent = 'Create Booking'; btn.disabled = false; }, 2000);
+            }
         });
     });
 
