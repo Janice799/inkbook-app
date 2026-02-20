@@ -50,14 +50,20 @@ export async function getArtistFlashDesigns(artistId) {
     try {
         const q = query(
             collection(db, 'flash_designs'),
-            where('artistId', '==', artistId),
-            orderBy('createdAt', 'desc')
+            where('artistId', '==', artistId)
         );
 
         const snap = await getDocs(q);
         const designs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort client-side (newest first)
+        designs.sort((a, b) => {
+            const tA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const tB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return tB - tA;
+        });
         return { success: true, data: designs };
     } catch (error) {
+        console.error('getArtistFlashDesigns error:', error);
         return { success: false, error: error.message };
     }
 }
@@ -68,14 +74,19 @@ export async function getPublicFlashDesigns(artistId) {
         const q = query(
             collection(db, 'flash_designs'),
             where('artistId', '==', artistId),
-            where('available', '==', true),
-            orderBy('createdAt', 'desc')
+            where('available', '==', true)
         );
 
         const snap = await getDocs(q);
         const designs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        designs.sort((a, b) => {
+            const tA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const tB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return tB - tA;
+        });
         return { success: true, data: designs };
     } catch (error) {
+        console.error('getPublicFlashDesigns error:', error);
         return { success: false, error: error.message };
     }
 }

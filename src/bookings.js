@@ -104,14 +104,19 @@ export async function getTodayBookings(artistId) {
             collection(db, 'bookings'),
             where('artistId', '==', artistId),
             where('date', '>=', Timestamp.fromDate(today)),
-            where('date', '<', Timestamp.fromDate(tomorrow)),
-            orderBy('date', 'asc')
+            where('date', '<', Timestamp.fromDate(tomorrow))
         );
 
         const snap = await getDocs(q);
         const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        bookings.sort((a, b) => {
+            const dA = a.date?.toDate ? a.date.toDate() : new Date(0);
+            const dB = b.date?.toDate ? b.date.toDate() : new Date(0);
+            return dA - dB;
+        });
         return { success: true, data: bookings };
     } catch (error) {
+        console.error('getTodayBookings error:', error);
         return { success: false, error: error.message };
     }
 }
@@ -203,12 +208,16 @@ export async function markDepositPaid(bookingId, paypalOrderId, paypalTransactio
 export function listenToBookings(artistId, callback) {
     const q = query(
         collection(db, 'bookings'),
-        where('artistId', '==', artistId),
-        orderBy('date', 'desc')
+        where('artistId', '==', artistId)
     );
 
     return onSnapshot(q, (snap) => {
         const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        bookings.sort((a, b) => {
+            const dA = a.date?.toDate ? a.date.toDate() : new Date(0);
+            const dB = b.date?.toDate ? b.date.toDate() : new Date(0);
+            return dB - dA;
+        });
         callback(bookings);
     });
 }
