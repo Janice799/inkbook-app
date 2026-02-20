@@ -388,11 +388,14 @@
         <!-- Settings / Clients tabs placeholder -->
         <section class="tab-content" id="tab-clients">
             <div class="panel">
-                <div class="panel-header">
+                <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
                     <h2>Client Directory</h2>
+                    <input type="text" id="clientSearch" placeholder="🔍 Search clients..."
+                        style="padding:8px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;width:220px;" />
                 </div>
-                <p style="padding:24px; color:var(--text-secondary);">Client CRM coming in v1.1 — Track history,
-                    allergies, and previous work.</p>
+                <div id="clientsList" style="padding:16px;">
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Loading clients...</p>
+                </div>
             </div>
         </section>
         <section class="tab-content" id="tab-settings">

@@ -84,7 +84,8 @@ async function loadDashboardData() {
         loadOverviewStats(),
         loadTodaySchedule(),
         loadBookingsTable(),
-        loadGallery()
+        loadGallery(),
+        loadClients()
     ]);
 }
 
@@ -331,6 +332,83 @@ window.updateStatus = async (bookingId, newStatus) => {
         loadTodaySchedule();
     }
 };
+
+// ---- Clients ----
+async function loadClients() {
+    const result = await getArtistBookings(currentUser.uid);
+    const container = document.getElementById('clientsList');
+    if (!container) return;
+
+    if (!result.success || result.data.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);padding:20px;text-align:center;">No clients yet. Clients will appear here once you have bookings.</p>';
+        return;
+    }
+
+    // Group by client email or name
+    const clientMap = {};
+    result.data.forEach(b => {
+        const key = (b.clientEmail || b.clientName || 'Unknown').toLowerCase();
+        if (!clientMap[key]) {
+            clientMap[key] = {
+                name: b.clientName || 'Client',
+                email: b.clientEmail || '',
+                phone: b.clientPhone || '',
+                age: b.clientAge || '',
+                bookings: [],
+                totalSpent: 0
+            };
+        }
+        clientMap[key].bookings.push(b);
+        if (b.status !== 'cancelled') clientMap[key].totalSpent += (b.totalPrice || 0);
+    });
+
+    const clients = Object.values(clientMap).sort((a, b) => b.bookings.length - a.bookings.length);
+    renderClients(clients, container);
+
+    // Search
+    document.getElementById('clientSearch')?.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        const filtered = clients.filter(c => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.phone.includes(q));
+        renderClients(filtered, container);
+    });
+}
+
+function renderClients(clients, container) {
+    if (clients.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);padding:20px;text-align:center;">No matching clients.</p>';
+        return;
+    }
+    container.innerHTML = clients.map(c => {
+        const lastBooking = c.bookings[0];
+        const lastRaw = lastBooking?.date?.toDate ? lastBooking.date.toDate() : (lastBooking?.date ? new Date(lastBooking.date) : null);
+        const lastDateStr = lastRaw ? lastRaw.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const statusCounts = { confirmed: 0, completed: 0, cancelled: 0, pending: 0 };
+        c.bookings.forEach(b => { if (statusCounts[b.status] !== undefined) statusCounts[b.status]++; });
+        return `
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='var(--bg-primary)'" onmouseout="this.style.background='transparent'">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;flex-shrink:0;">${c.name.charAt(0).toUpperCase()}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <strong style="color:var(--text-primary);font-size:0.95rem;">${c.name}</strong>
+                    ${c.age ? `<span style="color:var(--text-muted);font-size:0.75rem;">Age ${c.age}</span>` : ''}
+                </div>
+                <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:2px;">${c.email}${c.phone ? ` · ${c.phone}` : ''}</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-weight:700;color:var(--text-primary);font-size:1.1rem;">${c.bookings.length}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">bookings</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-weight:700;color:var(--accent-bright);font-size:1.1rem;">$${c.totalSpent}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);">spent</div>
+            </div>
+            <div style="text-align:right;min-width:90px;">
+                <div style="font-size:0.75rem;color:var(--text-secondary);">${lastDateStr}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">✅${statusCounts.completed} 📅${statusCounts.confirmed} ❌${statusCounts.cancelled}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
 
 // ---- Gallery ----
 async function loadGallery() {
