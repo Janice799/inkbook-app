@@ -574,9 +574,9 @@ a {
 
 .filter-btn.active,
 .filter-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent-bright);
-    background: rgba(155, 93, 229, 0.1);
+    border-color: #4ecdc4;
+    color: #4ecdc4;
+    background: rgba(78, 205, 196, 0.1);
 }
 
 .btn-sm {
