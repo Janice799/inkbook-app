@@ -381,6 +381,37 @@ function showBookingDetailModal(booking) {
                         </select>
                     </div>
                 </div>
+
+                <!-- PayPal Payment Info -->
+                <div style="background:var(--bg-primary);border-radius:10px;padding:14px;border:1px solid var(--border);">
+                    <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">💳 Payment Info</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">Deposit Status</span>
+                        <span style="font-size:0.8rem;font-weight:600;color:${booking.depositPaid ? '#00c853' : '#ffab00'};">${booking.depositPaid ? '✅ Paid' : '⏳ Unpaid'}</span>
+                    </div>
+                    ${booking.paypalOrderId && booking.paypalOrderId !== 'SIMULATED' ? `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">PayPal Order</span>
+                        <span style="font-size:0.75rem;color:var(--text-muted);font-family:monospace;">${booking.paypalOrderId}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">Transaction ID</span>
+                        <span style="font-size:0.75rem;color:var(--text-muted);font-family:monospace;">${booking.paypalTransactionId || '—'}</span>
+                    </div>` : ''}
+                    ${booking.refunded ? `<div style="font-size:0.8rem;color:#ff4d4d;margin-top:4px;">🔄 Refund issued: $${booking.refundAmount || booking.depositAmount || 0}</div>` : ''}
+                    ${booking.depositPaid && !booking.refunded ? `<button type="button" id="refundBtn" style="margin-top:8px;width:100%;padding:10px;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.3);border-radius:8px;color:#ff4d4d;cursor:pointer;font-weight:600;font-size:0.85rem;">🔄 Issue Refund ($${booking.depositAmount || 0})</button>` : ''}
+                </div>
+
+                <!-- Consent Form Status -->
+                <div style="background:var(--bg-primary);border-radius:10px;padding:14px;border:1px solid var(--border);">
+                    <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">📋 Consent Form</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">Status</span>
+                        <span style="font-size:0.8rem;font-weight:600;color:${booking.consentSigned ? '#00c853' : '#ffab00'};">${booking.consentSigned ? '✅ Signed' : '⏳ Not signed'}</span>
+                    </div>
+                    ${!booking.consentSigned ? `<button type="button" id="copyConsentLink" style="margin-top:8px;width:100%;padding:10px;background:rgba(78,205,196,0.1);border:1px solid rgba(78,205,196,0.3);border-radius:8px;color:#4ecdc4;cursor:pointer;font-weight:600;font-size:0.85rem;">📋 Copy Consent Form Link</button>` : ''}
+                </div>
+
                 <div style="display:flex;gap:10px;margin-top:8px;">
                     <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
                     <button type="button" id="closeBookingDetail" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
@@ -390,6 +421,41 @@ function showBookingDetailModal(booking) {
     document.body.appendChild(modal);
     document.getElementById('closeBookingDetail').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Refund button
+    const refundBtn = document.getElementById('refundBtn');
+    if (refundBtn) {
+        refundBtn.addEventListener('click', async () => {
+            if (!confirm(`Are you sure you want to refund $${booking.depositAmount || 0} to ${booking.clientName}?`)) return;
+            refundBtn.textContent = '🔄 Processing...'; refundBtn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'bookings', booking.id), {
+                    refunded: true,
+                    refundAmount: booking.depositAmount || 0,
+                    refundedAt: serverTimestamp(),
+                    status: 'cancelled'
+                });
+                refundBtn.textContent = '✅ Refunded!';
+                setTimeout(() => { modal.remove(); loadBookingsTable(); loadOverviewStats(); }, 1000);
+            } catch (err) {
+                refundBtn.textContent = '❌ Error';
+                setTimeout(() => { refundBtn.textContent = `🔄 Issue Refund ($${booking.depositAmount || 0})`; refundBtn.disabled = false; }, 2000);
+            }
+        });
+    }
+
+    // Copy consent link
+    const copyConsentBtn = document.getElementById('copyConsentLink');
+    if (copyConsentBtn) {
+        copyConsentBtn.addEventListener('click', async () => {
+            const url = `${window.location.origin}/consent.html?booking=${booking.id}`;
+            try {
+                await navigator.clipboard.writeText(url);
+                copyConsentBtn.textContent = '✅ Link Copied!';
+            } catch { prompt('Copy this link:', url); }
+            setTimeout(() => { copyConsentBtn.textContent = '📋 Copy Consent Form Link'; }, 2000);
+        });
+    }
 
     document.getElementById('editBookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
