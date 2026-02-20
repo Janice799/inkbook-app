@@ -512,14 +512,23 @@ function showClientDetailModal(client) {
         const d = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
         const ds = d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
         const statusColor = { completed: '#00c853', confirmed: '#4ecdc4', cancelled: '#ff4d4d', pending: '#ffab00' }[b.status] || '#999';
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
-            <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};flex-shrink:0;"></span>
-            <div style="flex:1;">
-                <div style="font-size:0.85rem;color:var(--text-primary);">${b.designName || 'Custom'}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);">${ds} ${b.timeSlot || ''}</div>
+        const reminderLogs = (b.reminders || []).map(r => {
+            const rd = new Date(r);
+            return rd.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        });
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};flex-shrink:0;"></span>
+                <div style="flex:1;">
+                    <div style="font-size:0.85rem;color:var(--text-primary);">${b.designName || 'Custom'}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">${ds} ${b.timeSlot || ''}</div>
+                </div>
+                <span style="font-size:0.7rem;text-transform:uppercase;color:${statusColor};font-weight:600;">${b.status}</span>
+                <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">$${b.totalPrice || 0}</span>
             </div>
-            <span style="font-size:0.7rem;text-transform:uppercase;color:${statusColor};font-weight:600;">${b.status}</span>
-            <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">$${b.totalPrice || 0}</span>
+            ${reminderLogs.length ? `<div style="margin-top:6px;padding-left:20px;">
+                ${reminderLogs.map(r => `<div style="font-size:0.65rem;color:#4ecdc4;margin-bottom:2px;">📧 Reminder sent: ${r}</div>`).join('')}
+            </div>` : ''}
         </div>`;
     }).join('');
 
@@ -1074,12 +1083,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 list.innerHTML = upcoming.map((b, i) => {
                     const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
                     const dateStr = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                    const lastReminder = b.reminders?.length ? b.reminders[b.reminders.length - 1] : null;
+                    const lastSent = lastReminder ? new Date(lastReminder).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
                     return `
                     <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;">
-                        <input type="checkbox" class="reminder-check" data-idx="${i}" data-name="${b.clientName || ''}" data-email="${b.clientEmail || ''}" checked />
+                        <input type="checkbox" class="reminder-check" data-booking-id="${b.id}" data-name="${b.clientName || ''}" data-email="${b.clientEmail || ''}" checked />
                         <div style="flex:1;">
                             <strong style="color:var(--text-primary);font-size:0.9rem;">${b.clientName || 'Client'}</strong>
                             <span style="color:var(--text-muted);font-size:0.75rem;margin-left:6px;">${b.clientEmail || ''}</span>
+                            ${lastSent ? `<div style="font-size:0.65rem;color:#4ecdc4;margin-top:2px;">Last reminder: ${lastSent}</div>` : ''}
                         </div>
                         <span style="color:var(--text-secondary);font-size:0.75rem;white-space:nowrap;">${dateStr} ${b.timeSlot || b.time || ''}</span>
                     </label>`;
@@ -1100,8 +1112,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCount();
         });
 
-        // Send Selected
-        document.getElementById('sendSelectedReminders')?.addEventListener('click', () => {
+        // Send Selected — save reminder timestamp to Firestore
+        document.getElementById('sendSelectedReminders')?.addEventListener('click', async () => {
             const selected = document.querySelectorAll('.reminder-check:checked');
             if (selected.length === 0) {
                 const btn = document.getElementById('sendSelectedReminders');
@@ -1110,9 +1122,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const btn = document.getElementById('sendSelectedReminders');
-            btn.textContent = `✅ ${selected.length} Reminder(s) Queued!`;
-            btn.disabled = true;
-            setTimeout(() => modal.remove(), 1500);
+            btn.textContent = 'Sending...'; btn.disabled = true;
+            const now = new Date().toISOString();
+            try {
+                for (const cb of selected) {
+                    const bookingId = cb.dataset.bookingId;
+                    if (bookingId) {
+                        const bookingRef = doc(db, 'bookings', bookingId);
+                        // Get current reminders array, append new timestamp
+                        const { getDoc: getDocFn } = await import('firebase/firestore');
+                        const snap = await getDocFn(bookingRef);
+                        const existing = snap.data()?.reminders || [];
+                        existing.push(now);
+                        await updateDoc(bookingRef, { reminders: existing });
+                    }
+                }
+                btn.textContent = `✅ ${selected.length} Reminder(s) Sent!`;
+                setTimeout(() => modal.remove(), 1500);
+            } catch (err) {
+                btn.textContent = '❌ Error sending';
+                setTimeout(() => { btn.textContent = 'Send Selected'; btn.disabled = false; }, 2000);
+            }
         });
         document.getElementById('closeReminder')?.addEventListener('click', () => modal.remove());
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
