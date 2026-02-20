@@ -608,46 +608,81 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.innerHTML = `
             <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;">
                 <h3 style="margin-bottom:16px;color:var(--text-primary);">📧 Send Booking Reminder</h3>
-                <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem;">
-                    Select upcoming bookings to send email reminders to clients.
+                <p style="color:var(--text-secondary);margin-bottom:12px;font-size:0.9rem;">
+                    Select clients to send email reminders.
                 </p>
-                <div id="reminderList" style="max-height:300px;overflow-y:auto;margin-bottom:20px;">
+                <label id="selectAllLabel" style="display:flex;align-items:center;gap:8px;padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--border);color:var(--text-primary);cursor:pointer;font-size:0.85rem;font-weight:600;">
+                    <input type="checkbox" id="selectAllReminders" checked /> Select All
+                    <span id="selectedCount" style="margin-left:auto;color:var(--text-muted);font-weight:400;">0 selected</span>
+                </label>
+                <div id="reminderList" style="max-height:260px;overflow-y:auto;margin-bottom:16px;">
                     <p style="color:var(--text-muted);font-size:0.85rem;">Loading upcoming bookings...</p>
                 </div>
                 <div style="display:flex;gap:10px;">
-                    <button id="sendAllReminders" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Send to All Upcoming</button>
-                    <button id="closeReminder" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
+                    <button id="sendSelectedReminders" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Send Selected</button>
+                    <button id="closeReminder" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                 </div>
             </div>`;
         document.body.appendChild(modal);
 
-        // Load upcoming bookings into reminder list
+        const updateCount = () => {
+            const checks = document.querySelectorAll('.reminder-check');
+            const checked = document.querySelectorAll('.reminder-check:checked');
+            document.getElementById('selectedCount').textContent = `${checked.length} selected`;
+            document.getElementById('selectAllReminders').checked = checked.length === checks.length && checks.length > 0;
+        };
+
+        // Load upcoming bookings with checkboxes
         (async () => {
             const result = await getArtistBookings(currentUser.uid);
             const list = document.getElementById('reminderList');
             if (result.success && result.data.length > 0) {
-                const upcoming = result.data.filter(b => b.status === 'confirmed');
+                const upcoming = result.data.filter(b => b.status === 'confirmed' || b.status === 'pending');
                 if (upcoming.length === 0) {
                     list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No upcoming bookings to remind.</p>';
+                    document.getElementById('selectAllLabel').style.display = 'none';
                     return;
                 }
-                list.innerHTML = upcoming.map(b => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
-                        <div>
-                            <strong style="color:var(--text-primary);">${b.clientName || 'Client'}</strong>
-                            <span style="color:var(--text-muted);font-size:0.8rem;margin-left:8px;">${b.clientEmail || ''}</span>
+                list.innerHTML = upcoming.map((b, i) => {
+                    const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+                    const dateStr = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                    return `
+                    <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;">
+                        <input type="checkbox" class="reminder-check" data-idx="${i}" data-name="${b.clientName || ''}" data-email="${b.clientEmail || ''}" checked />
+                        <div style="flex:1;">
+                            <strong style="color:var(--text-primary);font-size:0.9rem;">${b.clientName || 'Client'}</strong>
+                            <span style="color:var(--text-muted);font-size:0.75rem;margin-left:6px;">${b.clientEmail || ''}</span>
                         </div>
-                        <span style="color:var(--text-secondary);font-size:0.8rem;">${b.date || ''} ${b.time || ''}</span>
-                    </div>
-                `).join('');
+                        <span style="color:var(--text-secondary);font-size:0.75rem;white-space:nowrap;">${dateStr} ${b.timeSlot || b.time || ''}</span>
+                    </label>`;
+                }).join('');
+                updateCount();
+
+                // Checkbox change listeners
+                list.querySelectorAll('.reminder-check').forEach(cb => cb.addEventListener('change', updateCount));
             } else {
                 list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No bookings found.</p>';
+                document.getElementById('selectAllLabel').style.display = 'none';
             }
         })();
 
-        document.getElementById('sendAllReminders')?.addEventListener('click', () => {
-            const btn = document.getElementById('sendAllReminders');
-            btn.textContent = '✅ Reminders Queued!';
+        // Select All toggle
+        document.getElementById('selectAllReminders')?.addEventListener('change', (e) => {
+            document.querySelectorAll('.reminder-check').forEach(cb => { cb.checked = e.target.checked; });
+            updateCount();
+        });
+
+        // Send Selected
+        document.getElementById('sendSelectedReminders')?.addEventListener('click', () => {
+            const selected = document.querySelectorAll('.reminder-check:checked');
+            if (selected.length === 0) {
+                const btn = document.getElementById('sendSelectedReminders');
+                btn.textContent = '⚠️ Select at least 1';
+                setTimeout(() => { btn.textContent = 'Send Selected'; }, 1500);
+                return;
+            }
+            const btn = document.getElementById('sendSelectedReminders');
+            btn.textContent = `✅ ${selected.length} Reminder(s) Queued!`;
             btn.disabled = true;
             setTimeout(() => modal.remove(), 1500);
         });
