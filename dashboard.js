@@ -176,9 +176,12 @@ async function loadBookingsTable(statusFilter = null) {
     }
 
     result.data.forEach(booking => {
-        const dateStr = booking.date ? new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD';
-        const depositStatus = booking.deposit?.paid ? `$${booking.deposit.amount} ✓` : 'Pending';
-        const depositClass = booking.deposit?.paid ? 'deposit-paid' : 'deposit-pending';
+        const rawDate = booking.date?.toDate ? booking.date.toDate() : (booking.date ? new Date(booking.date) : null);
+        const dateStr = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+        const depositAmt = booking.depositAmount || booking.deposit?.amount || 0;
+        const depositPaid = booking.depositPaid || booking.deposit?.paid || false;
+        const depositStatus = depositPaid ? `$${depositAmt} ✓` : `$${depositAmt}`;
+        const depositClass = depositPaid ? 'deposit-paid' : 'deposit-pending';
 
         const statusMap = {
             'confirmed': 'upcoming-badge',
@@ -191,9 +194,9 @@ async function loadBookingsTable(statusFilter = null) {
         const row = document.createElement('div');
         row.className = 'table-row';
         row.innerHTML = `
-            <span class="client-cell"><strong>${booking.clientName}</strong><br/>${booking.clientEmail || ''}</span>
+            <span class="client-cell"><strong>${booking.clientName || 'Client'}</strong><br/>${booking.clientEmail || ''}</span>
             <span>${booking.designName || 'Custom'}</span>
-            <span>${dateStr}, ${booking.time || ''}</span>
+            <span>${dateStr}, ${booking.timeSlot || booking.time || ''}</span>
             <span class="${depositClass}">${depositStatus}</span>
             <span><span class="status-badge ${statusMap[booking.status] || 'active-badge'}">${booking.status}</span></span>
             <span>

@@ -68,21 +68,26 @@ export async function getArtistBookings(artistId, statusFilter = null) {
             q = query(
                 collection(db, 'bookings'),
                 where('artistId', '==', artistId),
-                where('status', '==', statusFilter),
-                orderBy('date', 'desc')
+                where('status', '==', statusFilter)
             );
         } else {
             q = query(
                 collection(db, 'bookings'),
-                where('artistId', '==', artistId),
-                orderBy('date', 'desc')
+                where('artistId', '==', artistId)
             );
         }
 
         const snap = await getDocs(q);
         const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort client-side (newest first)
+        bookings.sort((a, b) => {
+            const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+            const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+            return dateB - dateA;
+        });
         return { success: true, data: bookings };
     } catch (error) {
+        console.error('getArtistBookings error:', error);
         return { success: false, error: error.message };
     }
 }
