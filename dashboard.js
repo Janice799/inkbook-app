@@ -88,6 +88,8 @@ async function loadDashboardData() {
         loadClients(),
         loadNotifications()
     ]);
+    // Earnings is inside DOMContentLoaded scope, call it separately
+    if (typeof window._loadEarnings === 'function') window._loadEarnings();
 }
 
 // ---- Notifications ----
@@ -1111,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    window._loadEarnings = loadEarnings;
     loadEarnings();
 
     // ---- SETTINGS TAB ----
