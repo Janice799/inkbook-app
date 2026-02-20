@@ -4,7 +4,7 @@
 import { onAuthChange, logoutArtist, getArtistProfile } from './src/auth.js';
 import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus, createBooking } from './src/bookings.js';
 import { getArtistFlashDesigns, uploadFlashDesign, toggleDesignAvailability, deleteFlashDesign } from './src/gallery.js';
-import { db, doc, updateDoc, serverTimestamp } from './src/firebase.js';
+import { db, doc, setDoc, updateDoc, serverTimestamp } from './src/firebase.js';
 
 // ---- Global State ----
 let currentUser = null;
@@ -762,14 +762,14 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         try {
             const handle = document.getElementById('settingHandle').value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            await updateDoc(doc(db, 'artists', currentUser.uid), {
+            await setDoc(doc(db, 'artists', currentUser.uid), {
                 displayName: document.getElementById('settingName').value,
                 handle,
                 bio: document.getElementById('settingBio').value,
                 location: document.getElementById('settingLocation').value,
                 specialties: document.getElementById('settingSpecialties').value.split(',').map(s => s.trim()).filter(Boolean),
                 updatedAt: serverTimestamp()
-            });
+            }, { merge: true });
             btn.textContent = '✅ Saved!';
             // Update sidebar info
             const miniName = document.querySelector('.user-mini-name');
@@ -791,7 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const days = [];
             document.querySelectorAll('#dayCheckboxes input[type="checkbox"]:checked').forEach(cb => days.push(cb.value));
-            await updateDoc(doc(db, 'artists', currentUser.uid), {
+            await setDoc(doc(db, 'artists', currentUser.uid), {
                 availability: {
                     days,
                     startTime: document.getElementById('settingStartTime').value,
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     slotDuration: parseInt(document.getElementById('settingSlotDuration').value)
                 },
                 updatedAt: serverTimestamp()
-            });
+            }, { merge: true });
             btn.textContent = '✅ Saved!';
             setTimeout(() => { btn.textContent = 'Save Availability'; btn.disabled = false; }, 2000);
         } catch (err) {
@@ -817,10 +817,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         try {
             const email = document.getElementById('settingPaypalEmail').value;
-            await updateDoc(doc(db, 'artists', currentUser.uid), {
+            await setDoc(doc(db, 'artists', currentUser.uid), {
                 paypal: { email: email || null, connected: !!email },
                 updatedAt: serverTimestamp()
-            });
+            }, { merge: true });
             btn.textContent = '✅ Saved!';
             setTimeout(() => { btn.textContent = 'Save PayPal'; btn.disabled = false; }, 2000);
         } catch (err) {
