@@ -14,7 +14,7 @@
 // → Order created → Captured → Booking confirmed in Firestore
 // ============================================================
 
-const PAYPAL_CLIENT_ID = 'YOUR_PAYPAL_CLIENT_ID'; // Replace with real ID
+const PAYPAL_CLIENT_ID = 'AaG5r1RQWNIYr30P21qOaHXUC242afKF97UtmHrHCq0fKSl4s7B02BFwqcZIxneJ3rz2BqTnSGmq1YvW';
 const PAYPAL_MODE = 'sandbox'; // 'sandbox' or 'live'
 
 // ---- Load PayPal SDK Script ----
