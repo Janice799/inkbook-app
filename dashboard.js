@@ -286,15 +286,30 @@ async function loadBookingsTable(statusFilter = null) {
             <span>${booking.designName || 'Custom'}</span>
             <span>${dateStr}, ${booking.timeSlot || booking.time || ''}</span>
             <span class="${depositClass}">${depositStatus}</span>
-            <span><span class="status-badge ${statusMap[booking.status] || 'active-badge'}">${booking.status}</span></span>
+            <span><span class="status-badge ${statusMap[booking.status] || 'active-badge'}">${booking.status}</span>${booking.consentSigned ? '<span style="display:block;font-size:0.6rem;color:#00c853;margin-top:3px;">📋 Consent ✓</span>' : '<span style="display:block;font-size:0.6rem;color:#ffab00;margin-top:3px;">📋 No consent</span>'}</span>
             <span style="display:flex;flex-direction:column;gap:4px;">
                 <button class="table-action view-booking-btn" style="background:var(--accent);color:#fff;border-radius:6px;">View</button>
+                ${!booking.consentSigned ? `<button class="table-action send-consent-btn" style="color:#4ecdc4;border-color:#4ecdc4;">📋 Consent</button>` : ''}
                 ${booking.status === 'confirmed' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','completed')">Complete</button>` : ''}
                 ${booking.status === 'pending' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','confirmed')">Confirm</button>` : ''}
                 ${booking.status !== 'cancelled' && booking.status !== 'completed' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','cancelled')">Cancel</button>` : ''}
             </span>`;
         // View button listener
         row.querySelector('.view-booking-btn').addEventListener('click', () => showBookingDetailModal(booking));
+        // Consent button listener
+        const consentBtn = row.querySelector('.send-consent-btn');
+        if (consentBtn) {
+            consentBtn.addEventListener('click', async () => {
+                const consentUrl = `${window.location.origin}/consent.html?booking=${booking.id}`;
+                try {
+                    await navigator.clipboard.writeText(consentUrl);
+                    consentBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { consentBtn.textContent = '📋 Consent'; }, 2000);
+                } catch {
+                    prompt('Copy this consent form link:', consentUrl);
+                }
+            });
+        }
         tableBody.appendChild(row);
     });
 }

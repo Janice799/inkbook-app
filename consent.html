@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tattoo Consent Form — InkBook</title>
+    <meta name="description" content="Digital tattoo consent form for your upcoming appointment." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/consent.css" />
+</head>
+
+<body>
+    <div class="consent-container">
+        <div class="consent-header">
+            <div class="logo">⚡ InkBook</div>
+            <h1>Tattoo Consent Form</h1>
+            <p id="bookingInfo" class="subtitle">Loading booking details...</p>
+        </div>
+
+        <form id="consentForm">
+            <!-- Section 1: Client Info -->
+            <div class="form-section">
+                <h2>👤 Client Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cfName">Full Legal Name *</label>
+                        <input type="text" id="cfName" required placeholder="Your full name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="cfDob">Date of Birth *</label>
+                        <input type="date" id="cfDob" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="cfPhone">Phone Number</label>
+                        <input type="tel" id="cfPhone" placeholder="(555) 123-4567" />
+                    </div>
+                    <div class="form-group">
+                        <label for="cfEmail">Email</label>
+                        <input type="email" id="cfEmail" placeholder="you@example.com" />
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="cfAddress">Address</label>
+                        <input type="text" id="cfAddress" placeholder="Street, City, State, ZIP" />
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="cfIdType">Government ID Type *</label>
+                        <select id="cfIdType" required>
+                            <option value="">Select ID type</option>
+                            <option value="drivers_license">Driver's License</option>
+                            <option value="passport">Passport</option>
+                            <option value="state_id">State ID</option>
+                            <option value="military_id">Military ID</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Age Verification -->
+            <div class="form-section">
+                <h2>🔞 Age Verification</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="cfAge18" required />
+                    <span>I confirm that I am <strong>18 years of age or older</strong> and have valid government-issued
+                        photo ID to verify my age.</span>
+                </label>
+            </div>
+
+            <!-- Section 3: Medical History -->
+            <div class="form-section">
+                <h2>🏥 Medical History</h2>
+                <p class="section-desc">Please check any conditions that apply to you:</p>
+                <div class="checkbox-grid">
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="allergies" /> Allergies
+                        (latex, ink, metals)</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="skin_conditions" /> Skin
+                        conditions (eczema, psoriasis)</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="blood_disorders" /> Blood
+                        disorders / bleeding issues</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="heart_conditions" />
+                        Heart conditions</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="diabetes" />
+                        Diabetes</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="epilepsy" /> Epilepsy /
+                        seizures</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="pregnant" /> Pregnant /
+                        nursing</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="immunocompromised" />
+                        Immunocompromised</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="medications" /> Currently
+                        on medications</label>
+                    <label class="checkbox-label"><input type="checkbox" name="medical" value="none" /> None of the
+                        above</label>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                    <label for="cfMedicalNotes">Additional medical notes</label>
+                    <textarea id="cfMedicalNotes" rows="2"
+                        placeholder="List any allergies, medications, or conditions..."></textarea>
+                </div>
+            </div>
+
+            <!-- Section 4: Risk Acknowledgment -->
+            <div class="form-section">
+                <h2>⚠️ Risks & Acknowledgments</h2>
+                <div class="risk-list">
+                    <p>I understand and acknowledge the following:</p>
+                    <ul>
+                        <li>Tattooing involves inserting ink into the skin using needles, which may result in
+                            <strong>bleeding, swelling, or bruising</strong>.</li>
+                        <li>There is a risk of <strong>infection, allergic reaction</strong>, or other complications.
+                        </li>
+                        <li>Tattoo <strong>colors may fade or change</strong> over time, and touch-ups may be needed.
+                        </li>
+                        <li>I have been given the opportunity to ask questions about the procedure.</li>
+                        <li>I am <strong>not under the influence</strong> of alcohol or drugs.</li>
+                        <li>The tattoo design, placement, and size have been discussed and <strong>I approve of the
+                                final design</strong>.</li>
+                    </ul>
+                </div>
+                <label class="checkbox-label highlight">
+                    <input type="checkbox" id="cfRiskAck" required />
+                    <span>I have read and understand the above risks and voluntarily consent to the tattoo
+                        procedure.</span>
+                </label>
+            </div>
+
+            <!-- Section 5: Aftercare -->
+            <div class="form-section">
+                <h2>💊 Aftercare Agreement</h2>
+                <div class="risk-list">
+                    <p>I agree to follow these aftercare instructions:</p>
+                    <ul>
+                        <li>Keep the bandage on for the recommended time period.</li>
+                        <li>Wash gently with mild, fragrance-free soap.</li>
+                        <li>Apply recommended aftercare ointment as directed.</li>
+                        <li>Avoid swimming, sun exposure, and soaking for at least 2 weeks.</li>
+                        <li>Do not pick or scratch the healing tattoo.</li>
+                        <li>Contact the artist or seek medical attention if signs of infection appear.</li>
+                    </ul>
+                </div>
+                <label class="checkbox-label highlight">
+                    <input type="checkbox" id="cfAftercare" required />
+                    <span>I agree to follow the aftercare instructions provided by the artist.</span>
+                </label>
+            </div>
+
+            <!-- Section 6: Liability Waiver -->
+            <div class="form-section">
+                <h2>📜 Liability Waiver</h2>
+                <label class="checkbox-label highlight">
+                    <input type="checkbox" id="cfWaiver" required />
+                    <span>I release the artist and studio from any liability for complications arising from the tattoo
+                        procedure, provided proper procedures were followed. I understand this is a
+                        <strong>permanent</strong> body modification.</span>
+                </label>
+            </div>
+
+            <!-- Section 7: Digital Signature -->
+            <div class="form-section">
+                <h2>✍️ Digital Signature</h2>
+                <p class="section-desc">Draw your signature below using your finger or mouse:</p>
+                <div class="signature-wrapper">
+                    <canvas id="signatureCanvas" width="500" height="150"></canvas>
+                    <button type="button" id="clearSignature" class="btn-clear">Clear</button>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                    <label for="cfSignDate">Date *</label>
+                    <input type="date" id="cfSignDate" required />
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="form-actions">
+                <button type="submit" id="submitConsent" class="btn-submit">✅ Submit Consent Form</button>
+            </div>
+        </form>
+
+        <div id="successMessage" style="display:none;">
+            <div class="success-card">
+                <div class="success-icon">✅</div>
+                <h2>Consent Form Submitted!</h2>
+                <p>Your tattoo consent form has been signed and submitted successfully. Your artist has been notified.
+                </p>
+                <p class="success-time" id="submittedTime"></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/consent.js"></script>
+</body>
+
+</html>

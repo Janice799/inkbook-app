@@ -8,10 +8,11 @@ service cloud.firestore {
     }
 
     // Bookings — artist can read/manage, anyone can create
+    // Public read/update needed for consent form flow
     match /bookings/{bookingId} {
       allow create: if true;
-      allow read: if request.auth != null && resource.data.artistId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.artistId == request.auth.uid;
+      allow read: if true;
+      allow update: if true;
       allow delete: if false;
     }
 
@@ -27,6 +28,13 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Consent Forms — anyone can create (client), artist can read
+    match /consent_forms/{formId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if true;
     }
   }
 }
