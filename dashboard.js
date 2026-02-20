@@ -435,12 +435,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
                         <div>
-                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date *</label>
-                            <input type="date" id="mbDate" required value="${defaultDate}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                            <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date * (MM/DD/YYYY)</label>
+                            <input type="text" id="mbDate" required placeholder="02/21/2026" value="${(tomorrow.getMonth() + 1).toString().padStart(2, '0')}/${tomorrow.getDate().toString().padStart(2, '0')}/${tomorrow.getFullYear()}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time *</label>
-                            <input type="time" id="mbTime" required value="14:00" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                            <select id="mbTime" required style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                <option value="09:00">9:00 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="14:00" selected>2:00 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                                <option value="20:00">8:00 PM</option>
+                            </select>
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Duration (hrs)</label>
@@ -504,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 designId: null,
                 designName: document.getElementById('mbDesignName').value,
                 designType: 'custom',
-                date: document.getElementById('mbDate').value,
+                date: (() => { const p = document.getElementById('mbDate').value.split('/'); return `${p[2]}-${p[0]}-${p[1]}`; })(),
                 timeSlot: document.getElementById('mbTime').value,
                 estimatedDuration: parseInt(document.getElementById('mbDuration').value) * 60,
                 totalPrice: price,
