@@ -9,6 +9,7 @@ export default defineConfig({
                 book: resolve(__dirname, 'book.html'),
                 dashboard: resolve(__dirname, 'dashboard.html'),
                 login: resolve(__dirname, 'login.html'),
+                consent: resolve(__dirname, 'consent.html'),
             },
         },
         outDir: 'dist',
