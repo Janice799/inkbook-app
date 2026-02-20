@@ -17,15 +17,46 @@ onAuthChange(async (user) => {
     }
     currentUser = user;
 
-    // Load artist profile
-    const profileResult = await getArtistProfile(user.uid);
+    // Load artist profile (with retry for new signups)
+    let profileResult = await getArtistProfile(user.uid);
+
+    // Retry once after 2 seconds if profile not found (new signup timing issue)
+    if (!profileResult.success) {
+        await new Promise(r => setTimeout(r, 2000));
+        profileResult = await getArtistProfile(user.uid);
+    }
+
     if (profileResult.success) {
         artistProfile = profileResult.data;
         renderArtistInfo(artistProfile);
         loadDashboardData();
     } else {
-        console.error('Profile not found, redirecting to login');
-        window.location.href = '/login.html';
+        // Profile truly doesn't exist — create a basic one from auth data
+        const { doc, setDoc, serverTimestamp } = await import('./src/firebase.js');
+        const { db } = await import('./src/firebase.js');
+        await setDoc(doc(db, 'artists', user.uid), {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || user.email.split('@')[0],
+            handle: user.email.split('@')[0],
+            bio: '',
+            location: '',
+            specialties: [],
+            plan: 'free',
+            bookingLink: '',
+            avatar: user.photoURL || null,
+            stats: { totalBookings: 0, rating: 0, yearsExperience: 0 },
+            availability: {
+                days: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
+                startTime: '10:00', endTime: '18:00', slotDuration: 60
+            },
+            paypal: { email: null, connected: false },
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        artistProfile = (await getArtistProfile(user.uid)).data;
+        renderArtistInfo(artistProfile);
+        loadDashboardData();
     }
 });
 
