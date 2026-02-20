@@ -85,8 +85,80 @@ async function loadDashboardData() {
         loadTodaySchedule(),
         loadBookingsTable(),
         loadGallery(),
-        loadClients()
+        loadClients(),
+        loadNotifications()
     ]);
+}
+
+// ---- Notifications ----
+async function loadNotifications() {
+    const result = await getArtistBookings(currentUser.uid);
+    if (!result.success) return;
+
+    const notifs = [];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    result.data.forEach(b => {
+        const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+        const dateStr = rawDate ? rawDate.toISOString().split('T')[0] : '';
+        const displayDate = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+        // Today's bookings
+        if (dateStr === today && (b.status === 'confirmed' || b.status === 'pending')) {
+            notifs.push({ icon: '📅', title: `Appointment today`, detail: `${b.clientName || 'Client'} — ${b.timeSlot || ''} · ${b.designName || 'Booking'}`, time: b.timeSlot || '', type: 'today' });
+        }
+
+        // Pending bookings need confirmation
+        if (b.status === 'pending') {
+            notifs.push({ icon: '⏳', title: `Pending confirmation`, detail: `${b.clientName || 'Client'} — ${displayDate} · ${b.designName || 'Booking'}`, time: displayDate, type: 'pending' });
+        }
+
+        // Recent bookings (created within last 24h)
+        const createdAt = b.createdAt?.toDate ? b.createdAt.toDate() : null;
+        if (createdAt && (now - createdAt) < 24 * 60 * 60 * 1000) {
+            notifs.push({ icon: '🆕', title: `New booking received`, detail: `${b.clientName || 'Client'} — ${displayDate} · ${b.designName || 'Booking'}`, time: 'Just now', type: 'new' });
+        }
+    });
+
+    // Remove duplicates (same booking can be both 'new' and 'pending')
+    const seen = new Set();
+    const unique = notifs.filter(n => {
+        const key = n.title + n.detail;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    // Update badge
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        if (unique.length > 0) {
+            badge.textContent = unique.length > 9 ? '9+' : unique.length;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Render list
+    const list = document.getElementById('notifList');
+    if (list) {
+        if (unique.length === 0) {
+            list.innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No notifications</p>';
+        } else {
+            list.innerHTML = unique.map(n => `
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:4px;background:var(--bg-primary);transition:background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='var(--bg-primary)'">
+                    <span style="font-size:1.2rem;flex-shrink:0;margin-top:2px;">${n.icon}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;color:var(--text-primary);font-size:0.85rem;">${n.title}</div>
+                        <div style="color:var(--text-secondary);font-size:0.75rem;margin-top:2px;">${n.detail}</div>
+                    </div>
+                    <span style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;">${n.time}</span>
+                </div>
+            `).join('');
+        }
+    }
 }
 
 // ---- Overview Stats ----
@@ -620,6 +692,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyBtn.textContent = '✅';
                 setTimeout(() => { copyBtn.textContent = '📋'; }, 2000);
             });
+        });
+    }
+
+    // ---- Notification Bell ----
+    const notifBell = document.getElementById('notifBell');
+    const notifDropdown = document.getElementById('notifDropdown');
+    if (notifBell && notifDropdown) {
+        notifBell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.style.display = notifDropdown.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', (e) => {
+            if (!notifDropdown.contains(e.target) && !notifBell.contains(e.target)) {
+                notifDropdown.style.display = 'none';
+            }
+        });
+        document.getElementById('clearNotifs')?.addEventListener('click', () => {
+            document.getElementById('notifList').innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No notifications</p>';
+            const badge = document.getElementById('notifBadge');
+            if (badge) { badge.style.display = 'none'; badge.textContent = '0'; }
         });
     }
 
