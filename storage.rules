@@ -1,8 +1,8 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Flash design images - public read, authenticated write
-    match /flash_designs/{artistId}/{allPaths=**} {
+    // Artist flash design images — artists/{artistId}/flash/
+    match /artists/{artistId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == artistId;
     }

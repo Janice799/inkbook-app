@@ -285,7 +285,11 @@ function showUploadModal() {
                 <input type="number" id="designPrice" placeholder="Price ($)" required style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);" />
                 <input type="text" id="designSize" placeholder="Size (e.g. 4-5in)" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);" />
                 <input type="text" id="designDuration" placeholder="Duration (e.g. 2hrs)" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);" />
-                <input type="file" id="designImage" accept="image/*" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);" />
+                <input type="file" id="designImage" accept="image/*" style="display:none;" />
+                <label for="designImage" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:0.9rem;">
+                    <span>📎</span>
+                    <span id="fileLabel">Choose Image File</span>
+                </label>
                 <div style="display:flex;gap:10px;margin-top:8px;">
                     <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Upload</button>
                     <button type="button" id="cancelUpload" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
@@ -296,6 +300,13 @@ function showUploadModal() {
 
     document.getElementById('cancelUpload').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Show selected filename
+    document.getElementById('designImage').addEventListener('change', (e) => {
+        const label = document.getElementById('fileLabel');
+        label.textContent = e.target.files[0] ? e.target.files[0].name : 'Choose Image File';
+        if (e.target.files[0]) label.style.color = 'var(--accent-bright)';
+    });
 
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
