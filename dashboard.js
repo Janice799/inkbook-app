@@ -199,12 +199,126 @@ async function loadBookingsTable(statusFilter = null) {
             <span>${dateStr}, ${booking.timeSlot || booking.time || ''}</span>
             <span class="${depositClass}">${depositStatus}</span>
             <span><span class="status-badge ${statusMap[booking.status] || 'active-badge'}">${booking.status}</span></span>
-            <span>
+            <span style="display:flex;flex-direction:column;gap:4px;">
+                <button class="table-action view-booking-btn" style="background:var(--accent);color:#fff;border-radius:6px;">View</button>
                 ${booking.status === 'confirmed' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','completed')">Complete</button>` : ''}
                 ${booking.status === 'pending' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','confirmed')">Confirm</button>` : ''}
                 ${booking.status !== 'cancelled' && booking.status !== 'completed' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','cancelled')">Cancel</button>` : ''}
             </span>`;
+        // View button listener
+        row.querySelector('.view-booking-btn').addEventListener('click', () => showBookingDetailModal(booking));
         tableBody.appendChild(row);
+    });
+}
+
+// ---- Booking Detail/Edit Modal ----
+function showBookingDetailModal(booking) {
+    document.getElementById('bookingDetailModal')?.remove();
+    const rawDate = booking.date?.toDate ? booking.date.toDate() : (booking.date ? new Date(booking.date) : null);
+    const dateVal = rawDate ? rawDate.toISOString().split('T')[0] : '';
+    const timeVal = booking.timeSlot || booking.time || '14:00';
+
+    const modal = document.createElement('div');
+    modal.id = 'bookingDetailModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
+    modal.innerHTML = `
+        <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;">
+            <h3 style="margin-bottom:20px;color:var(--text-primary);">📋 Booking Details</h3>
+            <form id="editBookingForm" style="display:flex;flex-direction:column;gap:14px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Client Name</label>
+                        <input type="text" id="ebName" value="${booking.clientName || ''}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Email</label>
+                        <input type="email" id="ebEmail" value="${booking.clientEmail || ''}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Phone</label>
+                        <input type="text" id="ebPhone" value="${booking.clientPhone || ''}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Age</label>
+                        <input type="number" id="ebAge" value="${booking.clientAge || ''}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Design / Description</label>
+                    <input type="text" id="ebDesign" value="${booking.designName || ''}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Date</label>
+                        <input type="date" id="ebDate" value="${dateVal}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Time</label>
+                        <select id="ebTime" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                            ${['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'].map(t => {
+        const h = parseInt(t); const m = t.split(':')[1];
+        const label = h >= 13 ? `${h - 12}:${m} PM` : h === 12 ? `12:${m} PM` : `${h}:${m} AM`;
+        return `<option value="${t}" ${t === timeVal ? 'selected' : ''}>${label}</option>`;
+    }).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Total Price ($)</label>
+                        <input type="number" id="ebPrice" value="${booking.totalPrice || 0}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Deposit ($)</label>
+                        <input type="number" id="ebDeposit" value="${booking.depositAmount || booking.deposit?.amount || 0}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Status</label>
+                        <select id="ebStatus" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                            <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="confirmed" ${booking.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
+                    <button type="button" id="closeBookingDetail" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
+                </div>
+            </form>
+        </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('closeBookingDetail').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    document.getElementById('editBookingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.textContent = 'Saving...'; btn.disabled = true;
+        try {
+            await updateDoc(doc(db, 'bookings', booking.id), {
+                clientName: document.getElementById('ebName').value,
+                clientEmail: document.getElementById('ebEmail').value,
+                clientPhone: document.getElementById('ebPhone').value,
+                clientAge: parseInt(document.getElementById('ebAge').value) || null,
+                designName: document.getElementById('ebDesign').value,
+                date: document.getElementById('ebDate').value,
+                timeSlot: document.getElementById('ebTime').value,
+                totalPrice: parseFloat(document.getElementById('ebPrice').value) || 0,
+                depositAmount: parseFloat(document.getElementById('ebDeposit').value) || 0,
+                status: document.getElementById('ebStatus').value,
+                updatedAt: serverTimestamp()
+            });
+            btn.textContent = '✅ Saved!';
+            setTimeout(() => { modal.remove(); loadBookingsTable(); loadOverviewStats(); }, 800);
+        } catch (err) {
+            console.error('Edit booking error:', err);
+            btn.textContent = '❌ Error';
+            setTimeout(() => { btn.textContent = 'Save Changes'; btn.disabled = false; }, 2000);
+        }
     });
 }
 
