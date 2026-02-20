@@ -4,6 +4,7 @@
 import { onAuthChange, logoutArtist, getArtistProfile } from './src/auth.js';
 import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus } from './src/bookings.js';
 import { getArtistFlashDesigns, uploadFlashDesign, toggleDesignAvailability, deleteFlashDesign } from './src/gallery.js';
+import { db, doc, updateDoc, serverTimestamp } from './src/firebase.js';
 
 // ---- Global State ----
 let currentUser = null;
@@ -421,6 +422,110 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
         }, 100 + i * 80);
+    });
+
+    // ---- SETTINGS TAB ----
+    function populateSettings(profile) {
+        if (!profile) return;
+        const s = (id) => document.getElementById(id);
+        if (s('settingName')) s('settingName').value = profile.displayName || '';
+        if (s('settingHandle')) s('settingHandle').value = profile.handle || '';
+        if (s('settingBio')) s('settingBio').value = profile.bio || '';
+        if (s('settingLocation')) s('settingLocation').value = profile.location || '';
+        if (s('settingSpecialties')) s('settingSpecialties').value = (profile.specialties || []).join(', ');
+
+        // Availability
+        const avail = profile.availability || {};
+        if (s('settingStartTime')) s('settingStartTime').value = avail.startTime || '10:00';
+        if (s('settingEndTime')) s('settingEndTime').value = avail.endTime || '18:00';
+        if (s('settingSlotDuration')) s('settingSlotDuration').value = String(avail.slotDuration || 60);
+
+        // Day checkboxes
+        const days = avail.days || ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        document.querySelectorAll('#dayCheckboxes input[type="checkbox"]').forEach(cb => {
+            cb.checked = days.includes(cb.value);
+        });
+
+        // PayPal
+        if (s('settingPaypalEmail')) s('settingPaypalEmail').value = (profile.paypal?.email) || '';
+    }
+
+    populateSettings(artistProfile);
+
+    // Save Profile
+    document.getElementById('profileSettingsForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+        try {
+            const handle = document.getElementById('settingHandle').value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            await updateDoc(doc(db, 'artists', currentUser.uid), {
+                displayName: document.getElementById('settingName').value,
+                handle,
+                bio: document.getElementById('settingBio').value,
+                location: document.getElementById('settingLocation').value,
+                specialties: document.getElementById('settingSpecialties').value.split(',').map(s => s.trim()).filter(Boolean),
+                updatedAt: serverTimestamp()
+            });
+            btn.textContent = '✅ Saved!';
+            // Update sidebar info
+            const miniName = document.querySelector('.user-mini-name');
+            if (miniName) miniName.textContent = `@${handle}`;
+            setTimeout(() => { btn.textContent = 'Save Profile'; btn.disabled = false; }, 2000);
+        } catch (err) {
+            btn.textContent = '❌ Error';
+            console.error(err);
+            setTimeout(() => { btn.textContent = 'Save Profile'; btn.disabled = false; }, 2000);
+        }
+    });
+
+    // Save Availability
+    document.getElementById('availabilityForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+        try {
+            const days = [];
+            document.querySelectorAll('#dayCheckboxes input[type="checkbox"]:checked').forEach(cb => days.push(cb.value));
+            await updateDoc(doc(db, 'artists', currentUser.uid), {
+                availability: {
+                    days,
+                    startTime: document.getElementById('settingStartTime').value,
+                    endTime: document.getElementById('settingEndTime').value,
+                    slotDuration: parseInt(document.getElementById('settingSlotDuration').value)
+                },
+                updatedAt: serverTimestamp()
+            });
+            btn.textContent = '✅ Saved!';
+            setTimeout(() => { btn.textContent = 'Save Availability'; btn.disabled = false; }, 2000);
+        } catch (err) {
+            btn.textContent = '❌ Error';
+            console.error(err);
+            setTimeout(() => { btn.textContent = 'Save Availability'; btn.disabled = false; }, 2000);
+        }
+    });
+
+    // Save PayPal
+    document.getElementById('paypalSettingsForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+        try {
+            const email = document.getElementById('settingPaypalEmail').value;
+            await updateDoc(doc(db, 'artists', currentUser.uid), {
+                paypal: { email: email || null, connected: !!email },
+                updatedAt: serverTimestamp()
+            });
+            btn.textContent = '✅ Saved!';
+            setTimeout(() => { btn.textContent = 'Save PayPal'; btn.disabled = false; }, 2000);
+        } catch (err) {
+            btn.textContent = '❌ Error';
+            console.error(err);
+            setTimeout(() => { btn.textContent = 'Save PayPal'; btn.disabled = false; }, 2000);
+        }
     });
 
     console.log('⚡ InkBook Dashboard loaded');
