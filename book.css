@@ -5,27 +5,28 @@
 
 /* === Variables (inherits from main) === */
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #111118;
-    --bg-card: #16161f;
-    --bg-card-hover: #1c1c28;
-    --accent: #9b5de5;
-    --accent-bright: #c77dff;
-    --accent-hot: #e040fb;
-    --accent-gradient: linear-gradient(135deg, #9b5de5 0%, #e040fb 100%);
-    --text-primary: #f0eff4;
-    --text-secondary: #a5a3b3;
-    --text-muted: #6b697a;
-    --border: rgba(155, 93, 229, 0.15);
-    --border-hover: rgba(155, 93, 229, 0.4);
-    --glow: 0 0 30px rgba(155, 93, 229, 0.2);
+    --bg-primary: #000000;
+    --bg-secondary: #111111;
+    --bg-card: #0d0d0d;
+    --bg-card-hover: #1a1a1a;
+    --accent: #e5e5e5;
+    --accent-bright: #ffffff;
+    --accent-hot: #cccccc;
+    --accent-gradient: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+    --accent-dim: #333333;
+    --text-primary: #ffffff;
+    --text-secondary: #999999;
+    --text-muted: #666666;
+    --border: #222222;
+    --border-hover: #444444;
+    --glow: 0 0 30px rgba(255, 255, 255, 0.06);
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
-    --success: #00c853;
-    --success-bg: rgba(0, 200, 83, 0.1);
+    --success: #4ade80;
+    --success-bg: rgba(74, 222, 128, 0.1);
 }
 
 *,
@@ -128,7 +129,7 @@ h3 {
 
 .artist-cover {
     height: 200px;
-    background: linear-gradient(135deg, #1a0a2e 0%, #0a0a0f 50%, #1a0e2e 100%);
+    background: linear-gradient(135deg, #111111 0%, #000000 50%, #0d0d0d 100%);
     position: relative;
     overflow: hidden;
 }
@@ -439,7 +440,7 @@ textarea:focus {
 
 .upload-area:hover {
     border-color: var(--accent);
-    background: rgba(155, 93, 229, 0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .upload-icon {
@@ -535,7 +536,7 @@ textarea:focus {
 }
 
 .cal-day:hover:not(.disabled):not(.empty) {
-    background: rgba(155, 93, 229, 0.15);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .cal-day.selected {
@@ -726,7 +727,7 @@ textarea:focus {
 
 /* Payment Summary */
 .payment-summary {
-    background: linear-gradient(135deg, rgba(155, 93, 229, 0.08) 0%, var(--bg-card) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, var(--bg-card) 100%);
     border: 1px solid var(--accent);
     border-radius: var(--radius-md);
     padding: 28px;

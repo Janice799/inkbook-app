@@ -5,7 +5,7 @@
 import {
     auth, db, googleProvider,
     signInWithPopup, signOut, onAuthStateChanged,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
     doc, setDoc, getDoc, serverTimestamp
 } from './firebase.js';
 
@@ -101,40 +101,6 @@ export async function loginWithGoogle() {
     }
 }
 
-// ---- Guest Login (Anonymous Auth + nickname) ----
-export async function loginAsGuest(nickname) {
-    try {
-        const result = await signInAnonymously(auth);
-        const user = result.user;
-
-        // Create guest profile in Firestore
-        await setDoc(doc(db, 'artists', user.uid), {
-            uid: user.uid,
-            email: null,
-            displayName: nickname,
-            handle: `guest_${Date.now().toString(36)}`,
-            bio: '',
-            location: '',
-            specialties: [],
-            plan: 'guest',
-            bookingLink: '',
-            avatar: null,
-            isGuest: true,
-            stats: { totalBookings: 0, rating: 0, yearsExperience: 0 },
-            availability: {
-                days: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
-                startTime: '10:00', endTime: '18:00', slotDuration: 60
-            },
-            paypal: { email: null, connected: false },
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-
-        return { success: true, user };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
-}
 
 // ---- Logout ----
 export async function logoutArtist() {
@@ -166,7 +132,8 @@ export async function getArtistByHandle(handle) {
         const q = query(collection(db, 'artists'), where('handle', '==', handle));
         const snap = await getDocs(q);
         if (!snap.empty) {
-            return { success: true, data: snap.docs[0].data() };
+            const doc = snap.docs[0];
+            return { success: true, data: { uid: doc.id, ...doc.data() } };
         }
         return { success: false, error: 'Artist not found' };
     } catch (error) {

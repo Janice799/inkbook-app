@@ -129,22 +129,38 @@ export async function getAvailableSlots(artistId, date) {
         const dayEnd = new Date(dayStart);
         dayEnd.setDate(dayEnd.getDate() + 1);
 
-        // Get existing bookings for this date
+        // Get existing bookings for this date (simple query — no composite index needed)
         const q = query(
             collection(db, 'bookings'),
-            where('artistId', '==', artistId),
-            where('date', '>=', Timestamp.fromDate(dayStart)),
-            where('date', '<', Timestamp.fromDate(dayEnd)),
-            where('status', 'in', ['pending', 'confirmed', 'in_progress'])
+            where('artistId', '==', artistId)
         );
 
         const snap = await getDocs(q);
-        const bookedSlots = snap.docs.map(d => d.data().timeSlot);
+        // Filter by date + active status client-side
+        const activeStatuses = ['pending', 'confirmed', 'in_progress'];
+        const bookedSlots = snap.docs
+            .map(d => d.data())
+            .filter(b => {
+                const bDate = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                return bDate >= dayStart && bDate < dayEnd && activeStatuses.includes(b.status);
+            })
+            .map(b => b.timeSlot);
 
-        // Get artist availability
-        const artistSnap = await getDoc(doc(db, 'artists', artistId));
-        const artist = artistSnap.data();
-        const { startTime, endTime } = artist.availability;
+        // Get artist availability (with defaults)
+        let startTime = '10:00';
+        let endTime = '18:00';
+        try {
+            const artistSnap = await getDoc(doc(db, 'artists', artistId));
+            if (artistSnap.exists()) {
+                const artist = artistSnap.data();
+                if (artist.availability) {
+                    startTime = artist.availability.startTime || startTime;
+                    endTime = artist.availability.endTime || endTime;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load artist availability, using defaults:', e);
+        }
 
         // Generate all possible slots
         const allSlots = generateTimeSlots(startTime, endTime);

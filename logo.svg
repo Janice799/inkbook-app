@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120" fill="none">
+  <defs>
+    <linearGradient id="penGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#9b5de5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#e8e0f0"/>
+      <stop offset="40%" stop-color="#c4b5d4"/>
+      <stop offset="100%" stop-color="#8b7da0"/>
+    </linearGradient>
+    <linearGradient id="needleGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#d4d4d8"/>
+      <stop offset="100%" stop-color="#71717a"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14101e"/>
+      <stop offset="100%" stop-color="#0d0f14"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#9b5de5" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#9b5de5" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="arkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9b5de5"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Dark background -->
+  <rect width="500" height="120" rx="14" fill="url(#bgGrad)"/>
+  <rect width="500" height="120" rx="14" stroke="#9b5de5" stroke-width="0.4" stroke-opacity="0.12" fill="none"/>
+  
+  <!-- Ambient glow behind icon -->
+  <ellipse cx="48" cy="60" rx="40" ry="50" fill="url(#glowGrad)"/>
+  
+  <!-- ===== Artistic Pen → Needle Icon ===== -->
+  <g transform="translate(18, 10) rotate(-30, 28, 50)">
+    <!-- Pen body -->
+    <path d="M24 8 C20 8, 18 12, 18 18 L18 48 C18 50, 20 52, 24 53 L28 54 L32 53 C36 52, 38 50, 38 48 L38 18 C38 12, 36 8, 32 8 Z" 
+          fill="url(#penGrad)" opacity="0.9"/>
+    <!-- Body highlight -->
+    <path d="M26 10 C24 10, 22 14, 22 18 L22 46 C22 47, 23 48, 25 48.5 L26 48.5 L26 10 Z" 
+          fill="white" opacity="0.12"/>
+    <!-- Metal grip -->
+    <rect x="17" y="50" width="22" height="4" rx="1" fill="url(#metalGrad)" opacity="0.8"/>
+    <rect x="17" y="56" width="22" height="2" rx="0.5" fill="url(#metalGrad)" opacity="0.5"/>
+    <!-- Transition -->
+    <path d="M20 58 L22 68 L28 78 L34 68 L36 58 Z" fill="url(#metalGrad)" opacity="0.7"/>
+    <!-- Needle tip -->
+    <path d="M26 72 L28 92 L30 72 Z" fill="url(#needleGrad)"/>
+    <!-- Needle glow -->
+    <circle cx="28" cy="92" r="2" fill="#c084fc" opacity="0.6" filter="url(#softGlow)"/>
+    <!-- Ink drops -->
+    <circle cx="28" cy="97" r="1.2" fill="#9b5de5" opacity="0.4"/>
+    <circle cx="26" cy="100" r="0.8" fill="#9b5de5" opacity="0.25"/>
+  </g>
+  
+  <!-- ===== Typography ===== -->
+  
+  <!-- "ARK" — small brand label above -->
+  <text x="94" y="38" font-family="'Space Grotesk', 'SF Pro Display', sans-serif" 
+        font-size="14" font-weight="700" fill="url(#arkGrad)" letter-spacing="5">ARK</text>
+  
+  <!-- "InkBook" — combined -->
+  <text x="92" y="76" font-family="'Space Grotesk', 'SF Pro Display', sans-serif" 
+        font-size="46" font-weight="700" letter-spacing="-1.5">
+    <tspan fill="#f5f0ff">Ink</tspan><tspan fill="#c084fc">Book</tspan>
+  </text>
+  
+  <!-- Tagline -->
+  <text x="94" y="98" font-family="'Inter', 'SF Pro Text', sans-serif" 
+        font-size="9" fill="#5a5670" letter-spacing="3" font-weight="500">TATTOO BOOKING ENGINE</text>
+  
+  <!-- Accent line under tagline -->
+  <line x1="94" y1="104" x2="160" y2="104" stroke="#9b5de5" stroke-width="1" stroke-opacity="0.15"/>
+</svg>

@@ -17,26 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    document.querySelectorAll('.feature-card, .pricing-card').forEach(el => {
+    document.querySelectorAll('.pain-card, .solution-card, .pricing-card').forEach(el => {
         observer.observe(el);
     });
 
     // ---- Navbar scroll effect ----
     const navbar = document.getElementById('navbar');
-    let lastScroll = 0;
 
     window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
 
         if (currentScroll > 100) {
-            navbar.style.background = 'rgba(10, 10, 15, 0.95)';
-            navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.3)';
+            navbar.style.background = 'rgba(0, 0, 0, 0.98)';
+            navbar.style.boxShadow = '0 1px 0 rgba(255,255,255,0.05)';
         } else {
-            navbar.style.background = 'rgba(10, 10, 15, 0.85)';
+            navbar.style.background = 'rgba(0, 0, 0, 0.9)';
             navbar.style.boxShadow = 'none';
         }
-
-        lastScroll = currentScroll;
     });
 
     // ---- Smooth scroll for anchor links ----
@@ -63,16 +60,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---- Pricing card hover glow ----
-    document.querySelectorAll('.pricing-card').forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            card.style.setProperty('--mouse-x', `${x}px`);
-            card.style.setProperty('--mouse-y', `${y}px`);
-        });
-    });
-
-    console.log('⚡ InkBook loaded successfully');
+    console.log('🖊️ ARK InkBook loaded');
 });

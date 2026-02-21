@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- Load Flash Designs ----
     const designsResult = await getPublicFlashDesigns(artist.uid);
     const designs = {};
-    const flashGrid = document.querySelector('.flash-grid');
+    const flashGrid = document.getElementById('flashGallery');
 
     if (designsResult.success && designsResult.data.length > 0) {
-        // Clear existing placeholder cards
+        // Clear loading state
         if (flashGrid) flashGrid.innerHTML = '';
 
         designsResult.data.forEach(design => {
@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 card.className = 'flash-card';
                 card.dataset.id = design.id;
                 card.innerHTML = `
-                    <div class="flash-img" style="${design.imageUrl ? `background-image:url(${design.imageUrl});background-size:cover;` : 'background:linear-gradient(135deg,#2d1b69,#1a1a2e);'}">
-                        ${!design.imageUrl ? '<span>🎨</span>' : ''}
+                    <div class="flash-img" style="${design.imageUrl ? `background-image:url(${design.imageUrl});background-size:cover;` : 'background:var(--bg-secondary);'}">
+                        ${!design.imageUrl ? '<span style="font-size:2rem;">🎨</span>' : ''}
                     </div>
                     <div class="flash-info">
                         <span class="flash-name">${design.name}</span>
@@ -74,21 +74,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 flashGrid.appendChild(card);
             }
         });
+    } else {
+        // No designs from Firestore — clear loading state
+        if (flashGrid) flashGrid.innerHTML = '';
+    }
 
-        // Add custom design option
-        if (flashGrid) {
-            const customCard = document.createElement('div');
-            customCard.className = 'flash-card';
-            customCard.dataset.id = 'custom';
-            designs['custom'] = { name: 'Custom Design', price: 0 };
-            customCard.innerHTML = `
-                <div class="flash-img" style="background:var(--bg-secondary);"><span>✨</span></div>
-                <div class="flash-info">
-                    <span class="flash-name">Custom Design</span>
-                    <span class="flash-price">Quote Based</span>
-                </div>`;
-            flashGrid.appendChild(customCard);
-        }
+    // Always add custom design option
+    if (flashGrid) {
+        const customCard = document.createElement('div');
+        customCard.className = 'flash-card';
+        customCard.dataset.id = 'custom';
+        designs['custom'] = { name: 'Custom Design', price: 0 };
+        customCard.innerHTML = `
+            <div class="flash-img" style="background:var(--bg-secondary);"><span style="font-size:2rem;">✨</span></div>
+            <div class="flash-info">
+                <span class="flash-name">Custom Design</span>
+                <span class="flash-price">Quote Based</span>
+            </div>`;
+        flashGrid.appendChild(customCard);
     }
 
     // ---- State ----

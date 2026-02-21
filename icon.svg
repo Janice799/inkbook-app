@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1030"/>
+      <stop offset="100%" stop-color="#0d0f14"/>
+    </linearGradient>
+    <linearGradient id="penGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#9b5de5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#e8e0f0"/>
+      <stop offset="40%" stop-color="#c4b5d4"/>
+      <stop offset="100%" stop-color="#8b7da0"/>
+    </linearGradient>
+    <linearGradient id="needleGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#d4d4d8"/>
+      <stop offset="100%" stop-color="#71717a"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#9b5de5" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#9b5de5" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <rect width="128" height="128" rx="28" fill="url(#glowGrad)"/>
+  <rect width="128" height="128" rx="28" stroke="#9b5de5" stroke-width="0.8" stroke-opacity="0.15" fill="none"/>
+  
+  <!-- ===== Artistic Pen → Needle Icon (centered) ===== -->
+  <g transform="translate(36, 8) rotate(-15, 28, 56)">
+    <!-- Pen body — elegant quill -->
+    <path d="M24 10 C20 10, 18 15, 18 22 L18 55 C18 57, 20 59, 24 60 L28 61 L32 60 C36 59, 38 57, 38 55 L38 22 C38 15, 36 10, 32 10 Z" 
+          fill="url(#penGrad)" opacity="0.92"/>
+    
+    <!-- Body highlight -->
+    <path d="M25 12 C23 12, 21 16, 21 22 L21 52 C21 54, 22 55, 24 55.5 L25 55.5 L25 12 Z" 
+          fill="white" opacity="0.1"/>
+    
+    <!-- Metal grip rings -->
+    <rect x="17" y="58" width="22" height="4" rx="1" fill="url(#metalGrad)" opacity="0.8"/>
+    <rect x="18" y="64" width="20" height="2" rx="0.5" fill="url(#metalGrad)" opacity="0.5"/>
+    
+    <!-- Transition — pen to needle -->
+    <path d="M20 66 L23 78 L28 88 L33 78 L36 66 Z" 
+          fill="url(#metalGrad)" opacity="0.65"/>
+    
+    <!-- Tattoo needle tip -->
+    <path d="M26 82 L28 104 L30 82 Z" 
+          fill="url(#needleGrad)"/>
+    
+    <!-- Needle point glow -->
+    <circle cx="28" cy="104" r="2.5" fill="#c084fc" opacity="0.5" filter="url(#softGlow)"/>
+    
+    <!-- Ink drops -->
+    <circle cx="28" cy="110" r="1.5" fill="#9b5de5" opacity="0.35"/>
+    <circle cx="25" cy="113" r="1" fill="#9b5de5" opacity="0.2"/>
+  </g>
+</svg>

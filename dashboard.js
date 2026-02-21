@@ -5,6 +5,7 @@ import { onAuthChange, logoutArtist, getArtistProfile } from './src/auth.js';
 import { getArtistBookings, getTodayBookings, getMonthlyStats, updateBookingStatus, createBooking } from './src/bookings.js';
 import { getArtistFlashDesigns, uploadFlashDesign, toggleDesignAvailability, deleteFlashDesign } from './src/gallery.js';
 import { getTeamMembers, addTeamMember, updateTeamMember, deleteTeamMember } from './src/team.js';
+import { createSubscription, activateSubscription, cancelSubscription, cancelPayPalSubscription, handleSubscriptionReturn, getSubscriptionStatus, isPaidPlan } from './src/subscription.js';
 import { db, doc, setDoc, updateDoc, serverTimestamp } from './src/firebase.js';
 
 // ---- Global State ----
@@ -84,6 +85,7 @@ async function loadDashboardData() {
     await Promise.all([
         loadOverviewStats(),
         loadTodaySchedule(),
+        loadRecentActivity(),
         loadBookingsTable(),
         loadGallery(),
         loadClients(),
@@ -91,6 +93,75 @@ async function loadDashboardData() {
     ]);
     // Earnings is inside DOMContentLoaded scope, call it separately
     if (typeof window._loadEarnings === 'function') window._loadEarnings();
+}
+
+// ---- Recent Activity ----
+async function loadRecentActivity() {
+    const result = await getArtistBookings(currentUser.uid);
+    const container = document.getElementById('activityList');
+    if (!container) return;
+
+    if (!result.success || result.data.length === 0) {
+        container.innerHTML = '<p style="padding: 40px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">No recent activity yet.</p>';
+        return;
+    }
+
+    // Build activity items from bookings (sorted by newest first)
+    const activities = [];
+    const now = new Date();
+
+    result.data.forEach(b => {
+        const createdAt = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt ? new Date(b.createdAt) : null);
+        const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
+        const timeAgo = createdAt ? getTimeAgo(createdAt, now) : '';
+
+        if (b.depositPaid) {
+            activities.push({ type: 'deposit', text: `Deposit received from <strong>${b.clientName || 'Client'}</strong>`, meta: `$${b.depositAmount || 0} · ${b.designName || 'Booking'} · ${timeAgo}`, time: createdAt || rawDate });
+        }
+
+        if (b.status === 'confirmed' || b.status === 'pending') {
+            activities.push({ type: 'booking', text: `New booking from <strong>${b.clientName || 'Client'}</strong>`, meta: `${b.designName || 'Booking'} · ${rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''} · ${timeAgo}`, time: createdAt || rawDate });
+        }
+
+        if (b.consentSigned) {
+            activities.push({ type: 'consent', text: `Consent form signed by <strong>${b.clientName || 'Client'}</strong>`, meta: `${b.designName || 'Booking'}`, time: createdAt || rawDate });
+        }
+
+        if (b.status === 'cancelled') {
+            activities.push({ type: 'cancel', text: `<strong>${b.clientName || 'Client'}</strong> cancelled${b.depositPaid ? ' — deposit forfeited' : ''}`, meta: `$${b.depositAmount || 0} retained · ${timeAgo}`, time: createdAt || rawDate });
+        }
+    });
+
+    // Sort by time, newest first, take top 8
+    activities.sort((a, b) => (b.time || 0) - (a.time || 0));
+    const top = activities.slice(0, 8);
+
+    if (top.length === 0) {
+        container.innerHTML = '<p style="padding: 40px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">No recent activity yet.</p>';
+        return;
+    }
+
+    container.innerHTML = top.map(a => `
+        <div class="activity-item">
+            <div class="activity-dot ${a.type}"></div>
+            <div class="activity-info">
+                <span class="activity-text">${a.text}</span>
+                <span class="activity-meta">${a.meta}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getTimeAgo(date, now) {
+    const diff = now - date;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // ---- Notifications ----
@@ -878,6 +949,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`tab-${tab}`).classList.add('active');
             pageTitle.textContent = titles[tab] || tab;
             sidebar.classList.remove('open');
+            // Reload tab-specific data
+            if (tab === 'settings') {
+                if (typeof window._loadTeamGrid === 'function') window._loadTeamGrid();
+                if (typeof window._loadSubscriptionUI === 'function') window._loadSubscriptionUI();
+            }
+            if (tab === 'earnings' && typeof window._loadEarnings === 'function') window._loadEarnings();
         });
     });
 
@@ -1290,6 +1367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const completed = bookings.filter(b => b.status === 'completed');
         const confirmed = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
+        const refunded = bookings.filter(b => b.refunded);
 
         // This month's completed
         const monthCompleted = completed.filter(b => {
@@ -1297,8 +1375,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
         });
 
+        const PLATFORM_FEE_RATE = 0.05; // 5%
+
         const totalRevenue = monthCompleted.reduce((sum, b) => sum + (parseFloat(b.totalPrice) || 0), 0);
+        const totalFees = Math.round(totalRevenue * PLATFORM_FEE_RATE * 100) / 100;
+        const netRevenue = Math.round((totalRevenue - totalFees) * 100) / 100;
         const depositCollected = confirmed.reduce((sum, b) => sum + (parseFloat(b.depositAmount) || parseFloat(b.deposit?.amount) || 0), 0);
+        const totalRefunds = refunded.reduce((sum, b) => sum + (parseFloat(b.refundAmount) || parseFloat(b.depositAmount) || 0), 0);
 
         const el = (id) => document.getElementById(id);
         if (el('earningsTotal')) el('earningsTotal').textContent = `$${totalRevenue.toLocaleString()}`;
@@ -1306,7 +1389,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('earningsDeposits')) el('earningsDeposits').textContent = `$${depositCollected.toLocaleString()}`;
         if (el('earningsPending')) el('earningsPending').textContent = `${confirmed.length} upcoming bookings`;
 
-        // Transaction list
+        // Fee / Net / Refund cards
+        if (el('earningsFees')) el('earningsFees').textContent = `$${totalFees.toLocaleString()}`;
+        if (el('earningsFeeNote')) el('earningsFeeNote').textContent = `${monthCompleted.length} completed bookings`;
+        if (el('earningsNet')) el('earningsNet').textContent = `$${netRevenue.toLocaleString()}`;
+        if (el('earningsRefunds')) el('earningsRefunds').textContent = `$${totalRefunds.toLocaleString()}`;
+        if (el('earningsRefundNote')) el('earningsRefundNote').textContent = `${refunded.length} refunded`;
+
+        // Transaction list with per-booking fee/net
         const txList = el('earningsTransactionList');
         if (txList) {
             if (bookings.length === 0) {
@@ -1322,17 +1412,24 @@ document.addEventListener('DOMContentLoaded', () => {
             txList.innerHTML = sorted.map(b => {
                 const price = b.totalPrice || 0;
                 const deposit = b.depositAmount || b.deposit?.amount || 0;
+                const fee = Math.round(price * PLATFORM_FEE_RATE * 100) / 100;
+                const net = Math.round((price - fee) * 100) / 100;
                 const rawDate = b.date?.toDate ? b.date.toDate() : (b.date ? new Date(b.date) : null);
                 const dateStr = rawDate ? rawDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                let icon, iconClass, label, amount;
+                let icon, iconClass, label, amount, feeInfo;
                 if (b.status === 'completed') {
                     icon = '✅'; iconClass = 'deposit-icon'; label = 'Completed'; amount = `+$${price}`;
+                    feeInfo = `<span style="font-size:0.7rem;color:#ff6b6b;">Fee -$${fee}</span> <span style="font-size:0.7rem;color:#00c853;">Net $${net}</span>`;
                 } else if (b.status === 'cancelled') {
-                    icon = '❌'; iconClass = 'forfeit-icon'; label = 'Cancelled'; amount = '$0';
+                    icon = '❌'; iconClass = 'forfeit-icon'; label = 'Cancelled';
+                    amount = b.refunded ? `-$${b.refundAmount || deposit}` : '$0';
+                    feeInfo = b.refunded ? '<span style="font-size:0.7rem;color:#ffab00;">Refunded</span>' : '';
                 } else if (b.status === 'confirmed') {
                     icon = '📅'; iconClass = 'deposit-icon'; label = 'Confirmed'; amount = deposit > 0 ? `Deposit $${deposit}` : `$${price}`;
+                    feeInfo = `<span style="font-size:0.7rem;color:var(--text-muted);">Est. fee $${fee}</span>`;
                 } else {
                     icon = '⏳'; iconClass = 'deposit-icon'; label = 'Pending'; amount = `$${price}`;
+                    feeInfo = '';
                 }
                 return `
                     <div class="transaction">
@@ -1341,7 +1438,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <strong>${label} — ${b.clientName || 'Client'}</strong>
                             <span>${b.designName || 'Booking'} · ${dateStr} ${b.timeSlot || ''}</span>
                         </div>
-                        <span class="tx-amount ${b.status === 'completed' ? 'positive' : ''}">${amount}</span>
+                        <div style="text-align:right;">
+                            <span class="tx-amount ${b.status === 'completed' ? 'positive' : ''}">${amount}</span>
+                            <div>${feeInfo || ''}</div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -1355,48 +1455,54 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTeamGrid() {
         const grid = document.getElementById('teamGrid');
         if (!grid) return;
-        const result = await getTeamMembers(currentUser.uid);
-        const members = result.success ? result.data : [];
+        try {
+            const result = await getTeamMembers(currentUser.uid);
+            const members = result.success ? result.data : [];
 
-        grid.innerHTML = '';
+            grid.innerHTML = '';
 
-        // Render member cards
-        members.forEach(m => {
-            const card = document.createElement('div');
-            card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;transition:border-color 0.2s;';
-            card.onmouseover = () => card.style.borderColor = 'var(--accent)';
-            card.onmouseout = () => card.style.borderColor = 'var(--border)';
-            const roleColor = m.role === 'artist' ? 'var(--accent-bright)' : '#4ecdc4';
-            const roleLabel = m.role === 'artist' ? '🎨 Artist' : '👤 Staff';
-            card.innerHTML = `
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,${roleColor},var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;">${(m.name || '?').charAt(0).toUpperCase()}</div>
-                    <div>
-                        <strong style="color:var(--text-primary);font-size:1rem;">${m.name || 'Unnamed'}</strong>
-                        <div style="font-size:0.75rem;color:${roleColor};margin-top:2px;">${roleLabel}</div>
+            // Render member cards
+            members.forEach(m => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;transition:border-color 0.2s;';
+                card.onmouseover = () => card.style.borderColor = 'var(--accent)';
+                card.onmouseout = () => card.style.borderColor = 'var(--border)';
+                const roleColor = m.role === 'artist' ? 'var(--accent-bright)' : '#4ecdc4';
+                const roleLabel = m.role === 'artist' ? '🎨 Artist' : '👤 Staff';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,${roleColor},var(--accent-dim));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;flex-shrink:0;">${(m.name || '?').charAt(0).toUpperCase()}</div>
+                        <div>
+                            <strong style="color:var(--text-primary);font-size:1rem;">${m.name || 'Unnamed'}</strong>
+                            <div style="font-size:0.75rem;color:${roleColor};margin-top:2px;">${roleLabel}</div>
+                        </div>
                     </div>
-                </div>
-                ${m.specialties ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">✨ ${m.specialties}</div>` : ''}
-                ${m.workDays ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">📅 ${m.workDays}</div>` : ''}
-                ${m.startTime ? `<div style="font-size:0.75rem;color:var(--text-muted);">🕐 ${m.startTime} — ${m.endTime || '18:00'}</div>` : ''}
-                <div style="display:flex;gap:8px;margin-top:14px;">
-                    <button class="edit-member-btn" style="flex:1;padding:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:0.8rem;">✏️ Edit</button>
-                    <button class="del-member-btn" style="padding:8px 12px;background:none;border:1px solid rgba(255,77,77,0.3);border-radius:6px;color:#ff4d4d;cursor:pointer;font-size:0.8rem;">🗑️</button>
-                </div>`;
-            card.querySelector('.edit-member-btn').addEventListener('click', () => showTeamModal(m));
-            card.querySelector('.del-member-btn').addEventListener('click', async () => {
-                if (confirm(`Delete ${m.name}?`)) {
-                    await deleteTeamMember(m.id);
-                    loadTeamGrid();
-                }
+                    ${m.specialties ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">✨ ${m.specialties}</div>` : ''}
+                    ${m.workDays ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">📅 ${m.workDays}</div>` : ''}
+                    ${m.startTime ? `<div style="font-size:0.75rem;color:var(--text-muted);">🕐 ${m.startTime} — ${m.endTime || '18:00'}</div>` : ''}
+                    <div style="display:flex;gap:8px;margin-top:14px;">
+                        <button class="edit-member-btn" style="flex:1;padding:8px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:0.8rem;">✏️ Edit</button>
+                        <button class="del-member-btn" style="padding:8px 12px;background:none;border:1px solid rgba(255,77,77,0.3);border-radius:6px;color:#ff4d4d;cursor:pointer;font-size:0.8rem;">🗑️</button>
+                    </div>`;
+                card.querySelector('.edit-member-btn').addEventListener('click', () => showTeamModal(m));
+                card.querySelector('.del-member-btn').addEventListener('click', async () => {
+                    if (confirm(`Delete ${m.name}?`)) {
+                        await deleteTeamMember(m.id);
+                        loadTeamGrid();
+                    }
+                });
+                grid.appendChild(card);
             });
-            grid.appendChild(card);
-        });
 
-        if (members.length === 0) {
+            if (members.length === 0) {
+                grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;grid-column:1/-1;">No team members yet. Click "+ Add Member" to add your first artist or staff.</p>';
+            }
+        } catch (err) {
+            console.error('loadTeamGrid error:', err);
             grid.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;grid-column:1/-1;">No team members yet. Click "+ Add Member" to add your first artist or staff.</p>';
         }
     }
+    window._loadTeamGrid = loadTeamGrid;
 
     function showTeamModal(existing) {
         document.getElementById('teamModal')?.remove();
@@ -1435,17 +1541,56 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="text" id="tmPhone" value="${m.phone || ''}" placeholder="(555) 123-4567" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Working Days</label>
-                        <input type="text" id="tmDays" value="${m.workDays || ''}" placeholder="Mon-Fri" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                        <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px;">Working Days</label>
+                        <div id="tmDaysCheckboxes" style="display:flex;gap:6px;flex-wrap:wrap;">
+                            ${['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(d => {
+            const existingDays = (m.workDays || 'MON,TUE,WED,THU,FRI').split(',').map(s => s.trim());
+            const checked = existingDays.includes(d) ? 'checked' : '';
+            return `<label style="display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.8rem;color:var(--text-primary);user-select:none;">
+                                    <input type="checkbox" value="${d}" ${checked} style="accent-color:var(--accent);cursor:pointer;" />
+                                    ${d}
+                                </label>`;
+        }).join('')}
+                        </div>
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Start Time</label>
-                            <input type="time" id="tmStart" value="${m.startTime || '10:00'}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                            <select id="tmStart" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                ${(() => {
+                const startVal = m.startTime || '10:00';
+                let opts = '';
+                for (let h = 0; h < 24; h++) {
+                    for (let min = 0; min < 60; min += 30) {
+                        const val = String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+                        const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                        const ampm = h < 12 ? 'AM' : 'PM';
+                        const label = h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+                        opts += '<option value="' + val + '"' + (val === startVal ? ' selected' : '') + '>' + label + '</option>';
+                    }
+                }
+                return opts;
+            })()}
+                            </select>
                         </div>
                         <div>
                             <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">End Time</label>
-                            <input type="time" id="tmEnd" value="${m.endTime || '18:00'}" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
+                            <select id="tmEnd" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;">
+                                ${(() => {
+                const endVal = m.endTime || '18:00';
+                let opts = '';
+                for (let h = 0; h < 24; h++) {
+                    for (let min = 0; min < 60; min += 30) {
+                        const val = String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+                        const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                        const ampm = h < 12 ? 'AM' : 'PM';
+                        const label = h12 + ':' + String(min).padStart(2, '0') + ' ' + ampm;
+                        opts += '<option value="' + val + '"' + (val === endVal ? ' selected' : '') + '>' + label + '</option>';
+                    }
+                }
+                return opts;
+            })()}
+                            </select>
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;margin-top:8px;">
@@ -1468,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 specialties: document.getElementById('tmSpecialties').value,
                 email: document.getElementById('tmEmail').value,
                 phone: document.getElementById('tmPhone').value,
-                workDays: document.getElementById('tmDays').value,
+                workDays: Array.from(document.querySelectorAll('#tmDaysCheckboxes input[type="checkbox"]:checked')).map(cb => cb.value).join(','),
                 startTime: document.getElementById('tmStart').value,
                 endTime: document.getElementById('tmEnd').value
             };
@@ -1594,5 +1739,161 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ============================================================
+    // Subscription Management
+    // ============================================================
+    function loadSubscriptionUI() {
+        if (!artistProfile) return;
+        const plan = artistProfile.plan || 'free';
+        const sub = artistProfile.subscription;
+
+        // Update current plan display
+        const planNameEl = document.getElementById('currentPlanName');
+        const planStatusEl = document.getElementById('currentPlanStatus');
+        const upgradeCards = document.getElementById('planUpgradeCards');
+        const activePanel = document.getElementById('activeSubscriptionPanel');
+
+        if (planNameEl) {
+            const planLabels = { free: 'Free (Independent)', pro: 'Pro', studio: 'Studio' };
+            planNameEl.textContent = planLabels[plan] || 'Free (Independent)';
+        }
+
+        if (isPaidPlan(plan) && sub && sub.status === 'ACTIVE') {
+            // Show active subscription panel
+            if (upgradeCards) upgradeCards.style.display = 'none';
+            if (activePanel) {
+                activePanel.style.display = 'block';
+                const label = document.getElementById('activePlanLabel');
+                const subId = document.getElementById('activeSubId');
+                if (label) label.textContent = `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan — $${plan === 'pro' ? 19 : 39}/mo`;
+                if (subId) subId.textContent = `Subscription: ${sub.id || 'N/A'}`;
+            }
+            if (planStatusEl) planStatusEl.textContent = '✅ Active subscription';
+        } else {
+            // Show upgrade cards
+            if (upgradeCards) upgradeCards.style.display = 'grid';
+            if (activePanel) activePanel.style.display = 'none';
+            if (planStatusEl) planStatusEl.textContent = 'Upgrade to unlock all features';
+        }
+
+        // Update sidebar plan label
+        const miniPlan = document.querySelector('.artist-mini-plan');
+        if (miniPlan) {
+            const labels = { free: 'Free Plan', pro: 'Pro Plan', studio: 'Studio Plan' };
+            miniPlan.textContent = labels[plan] || 'Free Plan';
+        }
+    }
+    window._loadSubscriptionUI = loadSubscriptionUI;
+
+    window._upgradeSubscription = async function (planType) {
+        if (!currentUser) return;
+
+        const btn = document.getElementById(planType === 'pro' ? 'upgradePro' : 'upgradeStudio');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Redirecting to PayPal...';
+        }
+
+        try {
+            // Create subscription via PayPal REST API
+            const result = await createSubscription(planType);
+
+            if (result.success && result.approvalUrl) {
+                // Save pending subscription ID in localStorage for return
+                localStorage.setItem('pendingSubscription', JSON.stringify({
+                    subscriptionId: result.subscriptionId,
+                    planType,
+                    artistUid: currentUser.uid
+                }));
+                // Redirect to PayPal for approval
+                window.location.href = result.approvalUrl;
+            } else {
+                throw new Error(result.error || 'Failed to create subscription');
+            }
+        } catch (err) {
+            console.error('Subscription creation failed:', err);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = `Upgrade to ${planType.charAt(0).toUpperCase() + planType.slice(1)}`;
+            }
+            alert(`Subscription error: ${err.message}`);
+        }
+    };
+
+    window._cancelSubscription = async function () {
+        if (!currentUser) return;
+        if (!confirm('Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.')) return;
+
+        const sub = artistProfile?.subscription;
+
+        // Cancel on PayPal if we have a subscription ID
+        if (sub?.id && !sub.id.startsWith('SIM-')) {
+            const paypalResult = await cancelPayPalSubscription(sub.id);
+            if (!paypalResult.success) {
+                console.warn('PayPal cancellation failed, updating Firestore anyway');
+            }
+        }
+
+        // Cancel in Firestore
+        const result = await cancelSubscription(currentUser.uid);
+        if (result.success) {
+            artistProfile.plan = 'free';
+            if (artistProfile.subscription) artistProfile.subscription.status = 'CANCELLED';
+            loadSubscriptionUI();
+            alert('Subscription cancelled. You are now on the Free plan.');
+        } else {
+            alert('Error cancelling subscription. Please try again.');
+        }
+    };
+
+    // ---- Handle PayPal Subscription Return ----
+    async function checkSubscriptionReturn() {
+        const returnData = handleSubscriptionReturn();
+        if (!returnData) return;
+
+        if (returnData.status === 'success') {
+            // Get pending subscription from localStorage
+            const pending = JSON.parse(localStorage.getItem('pendingSubscription') || 'null');
+            localStorage.removeItem('pendingSubscription');
+
+            if (pending && currentUser) {
+                // Verify subscription status with PayPal
+                let subscriptionId = pending.subscriptionId;
+                if (returnData.subscriptionId) {
+                    subscriptionId = returnData.subscriptionId;
+                }
+
+                // Activate in Firestore
+                const result = await activateSubscription(currentUser.uid, {
+                    subscriptionId,
+                    planType: pending.planType
+                });
+
+                if (result.success) {
+                    artistProfile.plan = pending.planType;
+                    artistProfile.subscription = {
+                        id: subscriptionId,
+                        status: 'ACTIVE',
+                        planType: pending.planType
+                    };
+                    loadSubscriptionUI();
+                    alert(`🎉 Welcome to ${pending.planType.charAt(0).toUpperCase() + pending.planType.slice(1)}! Your plan is now active.`);
+                }
+            }
+
+            // Clean up URL
+            window.history.replaceState({}, '', '/dashboard.html');
+            // Switch to Settings tab
+            document.querySelector('[data-tab="settings"]')?.click();
+        } else if (returnData.status === 'cancelled') {
+            alert('Subscription was cancelled. No changes made.');
+            window.history.replaceState({}, '', '/dashboard.html');
+        }
+    }
+
+    // Check on page load
+    checkSubscriptionReturn();
+
     console.log('⚡ InkBook Dashboard loaded');
 });
+

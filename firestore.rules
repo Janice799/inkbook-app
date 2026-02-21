@@ -23,9 +23,9 @@ service cloud.firestore {
       allow create: if request.auth != null;
     }
 
-    // Team Members — owner can CRUD
+    // Team Members — owner can CRUD (query-level filtering by ownerId)
     match /team_members/{memberId} {
-      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
     }

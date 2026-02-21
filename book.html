@@ -71,67 +71,10 @@
             <h2 class="step-title">Choose Your Design</h2>
             <p class="step-desc">Pick from available flash designs or describe your custom idea below.</p>
 
-            <!-- Flash Gallery Grid -->
-            <div class="flash-gallery" id="flashGallery">
-                <div class="flash-card" data-id="1" data-price="200">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #2d1b69, #1a1a2e);">
-                        <span class="flash-emoji">🌹</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Rose Vine</span>
-                        <span class="flash-price">$200</span>
-                    </div>
-                    <span class="flash-size">4-5 inches · 2hrs</span>
-                </div>
-                <div class="flash-card" data-id="2" data-price="180">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #1b3a4b, #1a1a2e);">
-                        <span class="flash-emoji">🐍</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Serpent Wrap</span>
-                        <span class="flash-price">$180</span>
-                    </div>
-                    <span class="flash-size">6-7 inches · 3hrs</span>
-                </div>
-                <div class="flash-card" data-id="3" data-price="150">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #3d1b69, #1a1a2e);">
-                        <span class="flash-emoji">🦋</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Lunar Moth</span>
-                        <span class="flash-price">$150</span>
-                    </div>
-                    <span class="flash-size">3-4 inches · 1.5hrs</span>
-                </div>
-                <div class="flash-card" data-id="4" data-price="250">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #1b4b3a, #1a1a2e);">
-                        <span class="flash-emoji">🐉</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Dragon Coil</span>
-                        <span class="flash-price">$250</span>
-                    </div>
-                    <span class="flash-size">8-10 inches · 4hrs</span>
-                </div>
-                <div class="flash-card" data-id="5" data-price="120">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #4b1b1b, #1a1a2e);">
-                        <span class="flash-emoji">⚡</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Lightning Bolt</span>
-                        <span class="flash-price">$120</span>
-                    </div>
-                    <span class="flash-size">2-3 inches · 45min</span>
-                </div>
-                <div class="flash-card custom-card" data-id="custom" data-price="0">
-                    <div class="flash-img" style="background: linear-gradient(135deg, #333, #1a1a2e);">
-                        <span class="flash-emoji">✏️</span>
-                    </div>
-                    <div class="flash-info">
-                        <span class="flash-name">Custom Design</span>
-                        <span class="flash-price">Quote</span>
-                    </div>
-                    <span class="flash-size">Describe your idea</span>
+            <!-- Flash Gallery Grid (dynamically loaded from Firestore) -->
+            <div class="flash-gallery flash-grid" id="flashGallery">
+                <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
+                    ⏳ Loading designs...
                 </div>
             </div>
 

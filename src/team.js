@@ -9,11 +9,16 @@ export async function getTeamMembers(ownerId) {
     try {
         const q = query(
             collection(db, 'team_members'),
-            where('ownerId', '==', ownerId),
-            orderBy('createdAt', 'desc')
+            where('ownerId', '==', ownerId)
         );
         const snapshot = await getDocs(q);
         const members = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort client-side (avoids composite index requirement)
+        members.sort((a, b) => {
+            const ta = a.createdAt?.toDate?.() || new Date(0);
+            const tb = b.createdAt?.toDate?.() || new Date(0);
+            return tb - ta;
+        });
         return { success: true, data: members };
     } catch (error) {
         return { success: false, error: error.message, data: [] };

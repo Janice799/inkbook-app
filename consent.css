@@ -1,16 +1,20 @@
+/* ============================================================
+   InkBook — Consent Form Styles (B&W Design System)
+   ============================================================ */
+
 :root {
-    --bg-dark: #0d0f14;
-    --bg-card: #161921;
-    --bg-input: #1c1f2a;
-    --border: rgba(255, 255, 255, 0.08);
-    --accent: #9b5de5;
-    --accent-bright: #c084fc;
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a3b1;
-    --text-muted: #6b6e7e;
-    --success: #00c853;
-    --warning: #ffab00;
-    --danger: #ff4d4d;
+    --bg-dark: #000000;
+    --bg-card: #161616;
+    --bg-input: #1c1c1c;
+    --border: #222222;
+    --accent: #e5e5e5;
+    --accent-bright: #ffffff;
+    --text-primary: #ffffff;
+    --text-secondary: #999999;
+    --text-muted: #666666;
+    --success: #4ade80;
+    --warning: #f59e0b;
+    --danger: #ef4444;
     --radius: 12px;
 }
 
@@ -25,6 +29,7 @@ body {
     background: var(--bg-dark);
     color: var(--text-primary);
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
 }
 
 .consent-container {
@@ -42,7 +47,7 @@ body {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--accent-bright);
+    color: var(--text-muted);
     margin-bottom: 16px;
 }
 
@@ -152,8 +157,8 @@ body {
 }
 
 .checkbox-label.highlight {
-    background: rgba(155, 93, 229, 0.06);
-    border: 1px solid rgba(155, 93, 229, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
     padding: 14px;
 }
 
@@ -204,8 +209,8 @@ body {
     top: 8px;
     right: 8px;
     padding: 6px 14px;
-    background: rgba(255, 77, 77, 0.15);
-    border: 1px solid rgba(255, 77, 77, 0.3);
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
     border-radius: 6px;
     color: var(--danger);
     font-size: 0.75rem;
@@ -221,24 +226,24 @@ body {
 .btn-submit {
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, var(--accent), #7c3aed);
-    color: white;
+    background: #ffffff;
+    color: #000000;
     border: none;
     border-radius: var(--radius);
     font-size: 1.05rem;
     font-weight: 700;
     cursor: pointer;
     font-family: 'Space Grotesk', sans-serif;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(155, 93, 229, 0.3);
+    opacity: 0.9;
 }
 
 .btn-submit:disabled {
-    opacity: 0.6;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none;
 }
