@@ -10,6 +10,8 @@ export default defineConfig({
                 dashboard: resolve(__dirname, 'dashboard.html'),
                 login: resolve(__dirname, 'login.html'),
                 consent: resolve(__dirname, 'consent.html'),
+                terms: resolve(__dirname, 'terms.html'),
+                privacy: resolve(__dirname, 'privacy.html'),
             },
         },
         outDir: 'dist',
