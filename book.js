@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!artistHandle) {
         document.body.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0f;color:#fff;font-family:Inter,sans-serif;flex-direction:column;gap:16px;">
-                <h1 style="font-size:2rem;">⚡ InkBook</h1>
+                <h1 style="font-size:2rem;"><img src="/favicon.png" alt="InkBook" style="width:32px;height:32px;border-radius:6px;vertical-align:middle;margin-right:8px;">InkBook</h1>
                 <p style="color:#888;">No artist specified. Please use a valid booking link.</p>
             </div>`;
         return;
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!artistResult.success) {
         document.body.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0f;color:#fff;font-family:Inter,sans-serif;flex-direction:column;gap:16px;">
-                <h1 style="font-size:2rem;">⚡ InkBook</h1>
+                <h1 style="font-size:2rem;"><img src="/favicon.png" alt="InkBook" style="width:32px;height:32px;border-radius:6px;vertical-align:middle;margin-right:8px;">InkBook</h1>
                 <p style="color:#888;">Artist "@${artistHandle}" not found.</p>
             </div>`;
         return;
