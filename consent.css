@@ -44,7 +44,7 @@ body {
 }
 
 .logo {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-muted);
@@ -52,7 +52,7 @@ body {
 }
 
 .consent-header h1 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 8px;
@@ -72,7 +72,7 @@ body {
 }
 
 .form-section h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.05rem;
     margin-bottom: 16px;
     color: var(--text-primary);
@@ -233,7 +233,7 @@ body {
     font-size: 1.05rem;
     font-weight: 700;
     cursor: pointer;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: transform 0.2s, opacity 0.2s;
 }
 
@@ -264,7 +264,7 @@ body {
 }
 
 .success-card h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 1.5rem;
     margin-bottom: 12px;
     color: var(--success);
