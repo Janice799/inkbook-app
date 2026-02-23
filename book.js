@@ -40,6 +40,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (artistName) artistName.textContent = artist.displayName || `@${artist.handle}`;
     if (artistBio) artistBio.textContent = artist.bio || 'Tattoo Artist';
 
+    // Profile image
+    const avatarEl = document.getElementById('artistAvatar');
+    const avatarFallback = document.getElementById('avatarFallback');
+    if (artist.profileImage && avatarEl) {
+        if (avatarFallback) avatarFallback.style.display = 'none';
+        avatarEl.style.backgroundImage = `url(${artist.profileImage})`;
+        avatarEl.style.backgroundSize = 'cover';
+        avatarEl.style.backgroundPosition = 'center';
+    }
+
+    // Specialties tags
+    const specContainer = document.getElementById('artistSpecialties');
+    if (artist.specialties && artist.specialties.length > 0 && specContainer) {
+        specContainer.style.display = 'flex';
+        specContainer.style.flexWrap = 'wrap';
+        specContainer.style.justifyContent = 'center';
+        specContainer.style.gap = '6px';
+        const specs = Array.isArray(artist.specialties) ? artist.specialties : artist.specialties.split(',').map(s => s.trim());
+        specs.forEach(spec => {
+            if (spec) {
+                const tag = document.createElement('span');
+                tag.className = 'specialty-tag';
+                tag.textContent = spec;
+                specContainer.appendChild(tag);
+            }
+        });
+    }
+
+    // Social links
+    const socialContainer = document.getElementById('artistSocial');
+    if (socialContainer) {
+        socialContainer.innerHTML = '';
+        const socialLinks = [
+            { key: 'instagram', icon: '📸', label: 'Instagram' },
+            { key: 'portfolio', icon: '🌐', label: 'Portfolio' },
+            { key: 'twitter', icon: '𝕏', label: 'X / Twitter' },
+            { key: 'tiktok', icon: '🎵', label: 'TikTok' }
+        ];
+        let hasSocial = false;
+        socialLinks.forEach(({ key, icon, label }) => {
+            const url = artist[key] || (artist.social && artist.social[key]);
+            if (url) {
+                hasSocial = true;
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.className = 'social-link';
+                a.textContent = `${icon} ${label}`;
+                socialContainer.appendChild(a);
+            }
+        });
+        if (!hasSocial) socialContainer.style.display = 'none';
+    }
+
     // ---- Load Flash Designs ----
     const designsResult = await getPublicFlashDesigns(artist.uid);
     const designs = {};

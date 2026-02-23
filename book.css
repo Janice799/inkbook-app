@@ -5,21 +5,21 @@
 
 /* === Variables (inherits from main) === */
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #141420;
-    --bg-card: #111118;
-    --bg-card-hover: #1c1c2a;
-    --accent: #9b5de5;
-    --accent-bright: #c39dff;
-    --accent-hot: #b07aff;
-    --accent-gradient: linear-gradient(135deg, #9b5de5 0%, #6e3abf 100%);
-    --accent-dim: #2a1f40;
-    --text-primary: #f0f0f5;
-    --text-secondary: #a0a0b0;
-    --text-muted: #606070;
-    --border: #252535;
-    --border-hover: #454560;
-    --glow: 0 0 30px rgba(155, 93, 229, 0.15);
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #141414;
+    --bg-card: #111111;
+    --bg-card-hover: #1c1c1c;
+    --accent: #e0e0e0;
+    --accent-bright: #ffffff;
+    --accent-hot: #cccccc;
+    --accent-gradient: linear-gradient(135deg, #e0e0e0 0%, #b0b0b0 100%);
+    --accent-dim: #2a2a2a;
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --text-muted: #606060;
+    --border: #252525;
+    --border-hover: #454545;
+    --glow: 0 0 20px rgba(255, 255, 255, 0.06);
     --font-heading: 'Inter', sans-serif;
     --font-body: 'Inter', sans-serif;
     --radius-sm: 8px;
@@ -84,13 +84,13 @@ h3 {
 
 .btn-primary {
     background: var(--accent-gradient);
-    color: white;
-    box-shadow: 0 4px 20px rgba(155, 93, 229, 0.35);
+    color: #111;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 30px rgba(155, 93, 229, 0.5);
+    box-shadow: 0 6px 30px rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary:disabled {
@@ -598,8 +598,20 @@ textarea:focus {
 .time-slot.selected {
     background: var(--accent-gradient);
     border-color: transparent;
-    color: white;
+    color: #111;
     font-weight: 700;
+}
+
+/* Specialty Tags */
+.specialty-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 2px;
 }
 
 .time-slot.taken {

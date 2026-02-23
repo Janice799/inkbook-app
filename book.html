@@ -21,27 +21,15 @@
         <div class="artist-cover"></div>
         <div class="artist-info">
             <div class="artist-avatar" id="artistAvatar">
-                <span>🎨</span>
+                <span id="avatarFallback">🎨</span>
             </div>
             <h1 class="artist-name" id="artistName">@inkmaster_kai</h1>
             <p class="artist-bio" id="artistBio">Fine line specialist · Botanical & geometric · Los Angeles, CA</p>
-            <div class="artist-stats">
-                <div class="stat">
-                    <span class="stat-value">2.4k</span>
-                    <span class="stat-label">Bookings</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value">4.9★</span>
-                    <span class="stat-label">Rating</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value">6 yrs</span>
-                    <span class="stat-label">Experience</span>
-                </div>
+            <div class="artist-specialties" id="artistSpecialties" style="display:none;margin-bottom:16px;">
+                <!-- Dynamic specialty tags will be inserted here -->
             </div>
-            <div class="artist-social">
-                <a href="#" class="social-link">📸 Instagram</a>
-                <a href="#" class="social-link">🌐 Portfolio</a>
+            <div class="artist-social" id="artistSocial">
+                <!-- Dynamic SNS links will be inserted from Firestore -->
             </div>
         </div>
     </header>

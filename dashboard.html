@@ -17,7 +17,8 @@
     <!-- Sidebar -->
     <aside id="sidebar">
         <div class="sidebar-header">
-            <span class="logo-icon"><img src="/favicon.png" alt="InkBook" style="width:24px;height:24px;border-radius:4px;"></span>
+            <span class="logo-icon"><img src="/favicon.png" alt="InkBook"
+                    style="width:24px;height:24px;border-radius:4px;"></span>
             <span class="logo-brand">ARK</span>
             <span class="logo-text">Ink<span class="logo-accent">Book</span></span>
         </div>
@@ -403,6 +404,21 @@
                     profile — this information appears on your booking page that clients see when they want to book an
                     appointment with you.</p>
                 <form id="profileSettingsForm" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+                    <!-- Profile Image Upload -->
+                    <div style="display:flex;align-items:center;gap:20px;">
+                        <div id="profileImagePreview"
+                            style="width:80px;height:80px;border-radius:50%;background:var(--bg-primary);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;"
+                            title="Click to upload profile photo">
+                            <span style="font-size:2rem;">📷</span>
+                        </div>
+                        <div>
+                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">
+                                Profile Photo</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);">Click the circle to upload.
+                                Recommended: square, min 200×200px.</div>
+                            <input type="file" id="profileImageInput" accept="image/*" hidden />
+                        </div>
+                    </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                         <div>
                             <label
@@ -437,6 +453,42 @@
                                 (comma separated)</label>
                             <input type="text" id="settingSpecialties" placeholder="Traditional, Neo-trad, Realism"
                                 style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;outline:none;" />
+                        </div>
+                    </div>
+                    <!-- SNS Links -->
+                    <div>
+                        <label
+                            style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;font-weight:600;">🔗
+                            Social Links</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div>
+                                <label
+                                    style="display:block;font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">📸
+                                    Instagram URL</label>
+                                <input type="url" id="settingInstagram" placeholder="https://instagram.com/yourname"
+                                    style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;outline:none;" />
+                            </div>
+                            <div>
+                                <label
+                                    style="display:block;font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">🌐
+                                    Portfolio / Website URL</label>
+                                <input type="url" id="settingPortfolio" placeholder="https://yourportfolio.com"
+                                    style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;outline:none;" />
+                            </div>
+                            <div>
+                                <label
+                                    style="display:block;font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">🐦
+                                    X / Twitter URL</label>
+                                <input type="url" id="settingTwitter" placeholder="https://x.com/yourname"
+                                    style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;outline:none;" />
+                            </div>
+                            <div>
+                                <label
+                                    style="display:block;font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">🎵
+                                    TikTok URL</label>
+                                <input type="url" id="settingTiktok" placeholder="https://tiktok.com/@yourname"
+                                    style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;outline:none;" />
+                            </div>
                         </div>
                     </div>
                     <button type="submit"

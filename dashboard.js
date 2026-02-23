@@ -1645,6 +1645,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s('settingLocation')) s('settingLocation').value = profile.location || '';
         if (s('settingSpecialties')) s('settingSpecialties').value = (profile.specialties || []).join(', ');
 
+        // Profile image preview
+        if (profile.profileImage && s('profileImagePreview')) {
+            s('profileImagePreview').innerHTML = `<img src="${profile.profileImage}" style="width:100%;height:100%;object-fit:cover;" />`;
+        }
+
+        // SNS links
+        if (s('settingInstagram')) s('settingInstagram').value = profile.instagram || '';
+        if (s('settingPortfolio')) s('settingPortfolio').value = profile.portfolio || '';
+        if (s('settingTwitter')) s('settingTwitter').value = profile.twitter || '';
+        if (s('settingTiktok')) s('settingTiktok').value = profile.tiktok || '';
+
         // Availability
         const avail = profile.availability || {};
         if (s('settingStartTime')) s('settingStartTime').value = avail.startTime || '10:00';
@@ -1663,6 +1674,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     populateSettings(artistProfile);
 
+    // Profile image upload handler
+    let pendingProfileImage = null;
+    const imgPreview = document.getElementById('profileImagePreview');
+    const imgInput = document.getElementById('profileImageInput');
+    if (imgPreview && imgInput) {
+        imgPreview.addEventListener('click', () => imgInput.click());
+        imgInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            // Resize to max 300px to keep Firestore doc small
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 300;
+                    let w = img.width, h = img.height;
+                    if (w > MAX || h > MAX) {
+                        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                        else { w = Math.round(w * MAX / h); h = MAX; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    pendingProfileImage = canvas.toDataURL('image/jpeg', 0.8);
+                    imgPreview.innerHTML = `<img src="${pendingProfileImage}" style="width:100%;height:100%;object-fit:cover;" />`;
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     // Save Profile
     document.getElementById('profileSettingsForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1671,14 +1714,24 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
         try {
             const handle = document.getElementById('settingHandle').value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            await setDoc(doc(db, 'artists', currentUser.uid), {
+            const profileData = {
                 displayName: document.getElementById('settingName').value,
                 handle,
                 bio: document.getElementById('settingBio').value,
                 location: document.getElementById('settingLocation').value,
                 specialties: document.getElementById('settingSpecialties').value.split(',').map(s => s.trim()).filter(Boolean),
+                instagram: document.getElementById('settingInstagram')?.value || '',
+                portfolio: document.getElementById('settingPortfolio')?.value || '',
+                twitter: document.getElementById('settingTwitter')?.value || '',
+                tiktok: document.getElementById('settingTiktok')?.value || '',
                 updatedAt: serverTimestamp()
-            }, { merge: true });
+            };
+            // Only include image if changed
+            if (pendingProfileImage) {
+                profileData.profileImage = pendingProfileImage;
+                pendingProfileImage = null;
+            }
+            await setDoc(doc(db, 'artists', currentUser.uid), profileData, { merge: true });
             btn.textContent = '✅ Saved!';
             // Update sidebar info
             const miniName = document.querySelector('.user-mini-name');
