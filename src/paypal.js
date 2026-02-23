@@ -27,7 +27,7 @@ export function loadPayPalScript() {
         }
 
         const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&locale=en_US`;
         script.setAttribute('data-paypal', 'true');
         script.onload = resolve;
         script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
