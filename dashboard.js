@@ -359,7 +359,7 @@ async function loadBookingsTable(statusFilter = null) {
             <span class="${depositClass}">${depositStatus}</span>
             <span><span class="status-badge ${statusMap[booking.status] || 'active-badge'}">${booking.status}</span>${booking.consentSigned ? '<span style="display:block;font-size:0.6rem;color:#00c853;margin-top:3px;">📋 Consent ✓</span>' : '<span style="display:block;font-size:0.6rem;color:#ffab00;margin-top:3px;">📋 No consent</span>'}</span>
             <span style="display:flex;flex-direction:column;gap:4px;">
-                <button class="table-action view-booking-btn" style="background:var(--accent);color:#fff;border-radius:6px;">View</button>
+                <button class="table-action view-booking-btn" style="background:var(--accent);color:#000;border-radius:6px;">View</button>
                 ${!booking.consentSigned ? `<button class="table-action send-consent-btn" style="color:#4ecdc4;border-color:#4ecdc4;">📋 Consent</button>` : ''}
                 ${booking.status === 'confirmed' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','completed')">Complete</button>` : ''}
                 ${booking.status === 'pending' ? `<button class="table-action" onclick="window.updateStatus('${booking.id}','confirmed')">Confirm</button>` : ''}
@@ -484,7 +484,7 @@ function showBookingDetailModal(booking) {
                 </div>
 
                 <div style="display:flex;gap:10px;margin-top:8px;">
-                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
+                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
                     <button type="button" id="closeBookingDetail" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Close</button>
                 </div>
             </form>
@@ -714,7 +714,7 @@ function showClientDetailModal(client) {
                         <input type="text" id="cdPhone" value="${c.phone || ''}" style="width:100%;padding:8px 12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
                     </div>
                 </div>
-                <button id="saveClientInfo" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;margin-bottom:20px;">💾 Save Changes</button>
+                <button id="saveClientInfo" style="width:100%;padding:10px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;margin-bottom:20px;">💾 Save Changes</button>
                 <h4 style="color:var(--text-secondary);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Booking History</h4>
                 <div style="max-height:250px;overflow-y:auto;">
                     ${bookingRows || '<p style="color:var(--text-muted);font-size:0.85rem;">No bookings</p>'}
@@ -814,13 +814,18 @@ async function loadGallery() {
 // ---- Edit Design Modal ----
 function showEditDesignModal(design) {
     document.getElementById('editDesignModal')?.remove();
+    let newImageData = null;
     const modal = document.createElement('div');
     modal.id = 'editDesignModal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;';
     modal.innerHTML = `
         <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;">
             <h3 style="margin-bottom:16px;color:var(--text-primary);">✏️ Edit Design</h3>
-            ${design.imageUrl ? `<img src="${design.imageUrl}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:16px;" />` : ''}
+            <div id="editImageArea" style="width:100%;max-height:220px;border-radius:8px;margin-bottom:16px;cursor:pointer;overflow:hidden;position:relative;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;min-height:140px;" title="Click to change image">
+                ${design.imageUrl ? `<img id="editImagePreview" src="${design.imageUrl}" style="width:100%;max-height:220px;object-fit:cover;" />` : '<span style="color:var(--text-muted);font-size:0.85rem;">Click to add image</span>'}
+                <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;">📷 Change</div>
+            </div>
+            <input type="file" id="editImageInput" accept="image/*" hidden />
             <form id="editDesignForm" style="display:flex;flex-direction:column;gap:12px;">
                 <div>
                     <label style="display:block;font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Design Name</label>
@@ -841,12 +846,41 @@ function showEditDesignModal(design) {
                     <input type="text" id="editDuration" value="${design.duration || ''}" placeholder="e.g. 2hrs" style="width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;" />
                 </div>
                 <div style="display:flex;gap:10px;margin-top:8px;">
-                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
+                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
                     <button type="button" id="cancelEditDesign" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                 </div>
             </form>
         </div>`;
     document.body.appendChild(modal);
+
+    // Image change handler
+    const imgArea = document.getElementById('editImageArea');
+    const imgInput = document.getElementById('editImageInput');
+    imgArea.addEventListener('click', () => imgInput.click());
+    imgInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 600;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                    else { w = Math.round(w * MAX / h); h = MAX; }
+                }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                newImageData = canvas.toDataURL('image/jpeg', 0.85);
+                imgArea.innerHTML = `<img id="editImagePreview" src="${newImageData}" style="width:100%;max-height:220px;object-fit:cover;" /><div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;">📷 Change</div>`;
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
     document.getElementById('cancelEditDesign').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
     document.getElementById('editDesignForm').addEventListener('submit', async (e) => {
@@ -854,13 +888,17 @@ function showEditDesignModal(design) {
         const btn = e.target.querySelector('button[type="submit"]');
         btn.textContent = 'Saving...'; btn.disabled = true;
         try {
-            await updateDoc(doc(db, 'flash_designs', design.id), {
+            const updateData = {
                 name: document.getElementById('editName').value,
                 price: parseFloat(document.getElementById('editPrice').value) || 0,
                 size: document.getElementById('editSize').value,
                 duration: document.getElementById('editDuration').value,
                 updatedAt: serverTimestamp()
-            });
+            };
+            if (newImageData) {
+                updateData.imageUrl = newImageData;
+            }
+            await updateDoc(doc(db, 'flash_designs', design.id), updateData);
             btn.textContent = '✅ Saved!';
             setTimeout(() => { modal.remove(); loadGallery(); }, 800);
         } catch (err) {
@@ -890,7 +928,7 @@ function showUploadModal() {
                     <span>📎</span><span id="fileLabel">Choose Image File</span>
                 </label>
                 <div style="display:flex;gap:10px;margin-top:8px;">
-                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Upload</button>
+                    <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Upload</button>
                     <button type="button" id="cancelUpload" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                 </div>
             </form>
@@ -1086,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;margin-top:8px;">
-                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Create Booking</button>
+                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Create Booking</button>
                         <button type="button" id="cancelManualBooking" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                     </div>
                 </form>
@@ -1214,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p style="color:var(--text-muted);font-size:0.85rem;">Loading upcoming bookings...</p>
                 </div>
                 <div style="display:flex;gap:10px;">
-                    <button id="sendSelectedReminders" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Send Selected</button>
+                    <button id="sendSelectedReminders" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Send Selected</button>
                     <button id="closeReminder" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                 </div>
             </div>`;
@@ -1594,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;margin-top:8px;">
-                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">${isEdit ? 'Save Changes' : 'Add Member'}</button>
+                        <button type="submit" style="flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;">${isEdit ? 'Save Changes' : 'Add Member'}</button>
                         <button type="button" id="cancelTeam" style="flex:1;padding:12px;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);border-radius:8px;cursor:pointer;">Cancel</button>
                     </div>
                 </form>
