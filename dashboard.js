@@ -821,8 +821,8 @@ function showEditDesignModal(design) {
     modal.innerHTML = `
         <div style="background:var(--bg-secondary);border-radius:16px;padding:32px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;">
             <h3 style="margin-bottom:16px;color:var(--text-primary);">✏️ Edit Design</h3>
-            <div id="editImageArea" style="width:100%;max-height:220px;border-radius:8px;margin-bottom:16px;cursor:pointer;overflow:hidden;position:relative;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;min-height:140px;" title="Click to change image">
-                ${design.imageUrl ? `<img id="editImagePreview" src="${design.imageUrl}" style="width:100%;max-height:220px;object-fit:cover;" />` : '<span style="color:var(--text-muted);font-size:0.85rem;">Click to add image</span>'}
+            <div id="editImageArea" style="width:100%;border-radius:8px;margin-bottom:16px;cursor:pointer;overflow:hidden;position:relative;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;min-height:140px;background:#000;" title="Click to change image">
+                ${design.imageUrl ? `<img id="editImagePreview" src="${design.imageUrl}" style="width:100%;max-height:300px;object-fit:contain;" />` : '<span style="color:var(--text-muted);font-size:0.85rem;">Click to add image</span>'}
                 <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;">📷 Change</div>
             </div>
             <input type="file" id="editImageInput" accept="image/*" hidden />
@@ -874,7 +874,7 @@ function showEditDesignModal(design) {
                 canvas.width = w; canvas.height = h;
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 newImageData = canvas.toDataURL('image/jpeg', 0.85);
-                imgArea.innerHTML = `<img id="editImagePreview" src="${newImageData}" style="width:100%;max-height:220px;object-fit:cover;" /><div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;">📷 Change</div>`;
+                imgArea.innerHTML = `<img id="editImagePreview" src="${newImageData}" style="width:100%;max-height:300px;object-fit:contain;" /><div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;padding:4px 10px;border-radius:6px;font-size:0.7rem;">📷 Change</div>`;
             };
             img.src = ev.target.result;
         };
