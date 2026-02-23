@@ -150,14 +150,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Upload area
+    // Upload area — image preview
     const uploadArea = document.getElementById('uploadArea');
     const refImages = document.getElementById('refImages');
     if (uploadArea && refImages) {
         uploadArea.addEventListener('click', () => refImages.click());
+        // Support drag and drop
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--accent)'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '';
+            refImages.files = e.dataTransfer.files;
+            refImages.dispatchEvent(new Event('change'));
+        });
+
         refImages.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                uploadArea.querySelector('p').innerHTML = `<strong>${e.target.files.length} file(s) selected</strong>`;
+                // Show preview thumbnails
+                let previewDiv = document.getElementById('refPreview');
+                if (!previewDiv) {
+                    previewDiv = document.createElement('div');
+                    previewDiv.id = 'refPreview';
+                    previewDiv.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;';
+                    uploadArea.parentNode.insertBefore(previewDiv, uploadArea.nextSibling);
+                }
+                previewDiv.innerHTML = '';
+                Array.from(e.target.files).forEach((file, idx) => {
+                    if (!file.type.startsWith('image/')) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const thumb = document.createElement('div');
+                        thumb.style.cssText = 'position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--border);';
+                        thumb.innerHTML = `
+                            <img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;" />
+                            <span style="position:absolute;top:2px;right:4px;color:#ff6b6b;font-size:14px;cursor:pointer;font-weight:bold;" title="Remove">✕</span>
+                        `;
+                        previewDiv.appendChild(thumb);
+                    };
+                    reader.readAsDataURL(file);
+                });
+                uploadArea.querySelector('p').innerHTML = `<strong>${e.target.files.length} image(s) selected</strong> — click to change`;
             }
         });
     }
@@ -232,7 +265,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 slotEl.disabled = true;
             } else {
                 slotEl.addEventListener('click', () => {
-                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    document.querySelectorAll('.time-slot, .custom-time-slot').forEach(s => s.classList.remove('selected'));
+                    const customInput = document.querySelector('.custom-time-input');
+                    if (customInput) customInput.classList.remove('visible');
                     slotEl.classList.add('selected');
                     state.selectedTime = slot.time;
                     if (toStep3Btn) toStep3Btn.disabled = false;
@@ -240,6 +275,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
             slotsContainer.appendChild(slotEl);
+        });
+
+        // Add "Custom Time" option
+        const customBtn = document.createElement('button');
+        customBtn.className = 'custom-time-slot';
+        customBtn.textContent = '⏰ Choose Custom Time';
+        slotsContainer.appendChild(customBtn);
+
+        const customInputDiv = document.createElement('div');
+        customInputDiv.className = 'custom-time-input';
+        customInputDiv.innerHTML = `
+            <input type="time" id="customTimeInput" value="14:30" />
+            <button id="confirmCustomTime">Confirm</button>
+        `;
+        slotsContainer.appendChild(customInputDiv);
+
+        customBtn.addEventListener('click', () => {
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            customBtn.classList.add('selected');
+            customInputDiv.classList.add('visible');
+        });
+
+        customInputDiv.querySelector('#confirmCustomTime').addEventListener('click', () => {
+            const timeVal = customInputDiv.querySelector('#customTimeInput').value;
+            if (timeVal) {
+                const [h, m] = timeVal.split(':').map(Number);
+                const hour = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+                const period = h >= 12 ? 'PM' : 'AM';
+                const min = m.toString().padStart(2, '0');
+                state.selectedTime = `${hour}:${min} ${period}`;
+                customBtn.textContent = `⏰ ${state.selectedTime}`;
+                customInputDiv.classList.remove('visible');
+                if (toStep3Btn) toStep3Btn.disabled = false;
+                updateStep2Summary();
+            }
         });
     }
 
