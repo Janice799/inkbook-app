@@ -9,7 +9,7 @@
     --bg-secondary: #141414;
     --bg-card: #111111;
     --bg-card-hover: #1c1c1c;
-    --accent: #e0e0e0;
+    --accent: #ffffff;
     --accent-bright: #ffffff;
     --accent-hot: #ffffff;
     --accent-gradient: #ffffff;
@@ -94,10 +94,12 @@ h3 {
 }
 
 .btn-primary:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    background: #888888;
+    color: #000000;
 }
 
 .btn-ghost {
