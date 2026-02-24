@@ -71,12 +71,12 @@ function renderArtistInfo(profile) {
     if (miniName) miniName.textContent = `@${profile.handle || 'artist'}`;
     if (miniPlan) miniPlan.textContent = `${(profile.plan || 'free').charAt(0).toUpperCase() + (profile.plan || 'free').slice(1)} Plan`;
 
-    // Top bar booking link
-    const linkText = document.querySelector('.link-text');
-    if (linkText) {
+    // Top bar booking link button
+    const linkBtn = document.getElementById('openBookingPage');
+    if (linkBtn) {
         const bookingUrl = `${window.location.origin}/book.html?artist=${profile.handle}`;
-        linkText.textContent = bookingUrl;
-        linkText.dataset.url = bookingUrl;
+        linkBtn.href = bookingUrl;
+        linkBtn.dataset.url = bookingUrl;
     }
 }
 
@@ -1005,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyLink');
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            const url = document.querySelector('.link-text')?.dataset?.url || '';
+            const url = document.getElementById('openBookingPage')?.dataset?.url || '';
             navigator.clipboard.writeText(url).then(() => {
                 copyBtn.textContent = '✅';
                 setTimeout(() => { copyBtn.textContent = '📋'; }, 2000);
