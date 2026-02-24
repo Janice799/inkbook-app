@@ -11,8 +11,8 @@
     --bg-card-hover: #1c1c1c;
     --accent: #e0e0e0;
     --accent-bright: #ffffff;
-    --accent-hot: #cccccc;
-    --accent-gradient: linear-gradient(135deg, #e0e0e0 0%, #b0b0b0 100%);
+    --accent-hot: #ffffff;
+    --accent-gradient: #ffffff;
     --accent-dim: #2a2a2a;
     --text-primary: #f0f0f0;
     --text-secondary: #a0a0a0;
@@ -84,7 +84,7 @@ h3 {
 
 .btn-primary {
     background: var(--accent-gradient);
-    color: #111;
+    color: #000000;
     box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
@@ -266,7 +266,7 @@ h3 {
 .step.active .step-num {
     background: var(--accent-gradient);
     border-color: transparent;
-    color: white;
+    color: #000000;
 }
 
 .step.completed .step-num {
@@ -598,7 +598,7 @@ textarea:focus {
 .time-slot.selected {
     background: var(--accent-gradient);
     border-color: transparent;
-    color: #111;
+    color: #000000;
     font-weight: 700;
 }
 
@@ -672,7 +672,7 @@ textarea:focus {
     background: var(--accent-gradient);
     border: none;
     border-radius: var(--radius-sm);
-    color: white;
+    color: #000000;
     font-family: var(--font-heading);
     font-weight: 600;
     font-size: 0.85rem;
