@@ -40,6 +40,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (artistName) artistName.textContent = artist.displayName || `@${artist.handle}`;
     if (artistBio) artistBio.textContent = artist.bio || 'Tattoo Artist';
 
+    // Location
+    const locationEl = document.getElementById('artistLocation');
+    const locationText = document.getElementById('locationText');
+    if (artist.location && locationEl && locationText) {
+        locationText.textContent = artist.location;
+        locationEl.style.display = '';
+    }
+
     // Profile image
     const avatarEl = document.getElementById('artistAvatar');
     const avatarFallback = document.getElementById('avatarFallback');
