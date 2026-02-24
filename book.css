@@ -94,11 +94,11 @@ h3 {
 }
 
 .btn-primary:disabled {
-    opacity: 0.5;
+    opacity: 0.35;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
-    background: #888888;
+    background: #ffffff;
     color: #000000;
 }
 
