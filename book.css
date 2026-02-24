@@ -542,8 +542,8 @@ textarea:focus {
 }
 
 .cal-day.selected {
-    background: var(--accent-gradient);
-    color: white;
+    background: #ffffff;
+    color: #000000;
     font-weight: 700;
 }
 
@@ -816,10 +816,14 @@ textarea:focus {
 .deposit-amount {
     font-size: 1.3rem;
     font-weight: 700;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
+}
+
+#paypal-button-container {
+    margin-top: 16px;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
 }
 
 .payment-note {
