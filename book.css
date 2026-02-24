@@ -94,7 +94,7 @@ h3 {
 }
 
 .btn-primary:disabled {
-    opacity: 0.35;
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -104,13 +104,13 @@ h3 {
 
 .btn-ghost {
     background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-hover);
+    color: #ffffff;
+    border: 1px solid #ffffff;
 }
 
 .btn-ghost:hover {
-    border-color: var(--accent);
-    color: var(--accent-bright);
+    background: #ffffff;
+    color: #000000;
 }
 
 .btn-full {
